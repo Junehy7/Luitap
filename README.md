@@ -1,3 +1,4 @@
+<Cute Tetris>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,7 +12,7 @@
             height: 100vh;
             background-color: #9ACD32;
             margin: 0;
-            color: white;
+            color: black; /* Change text color to black */
             font-family: Arial, sans-serif; /* Set a default font for consistency */
         }
         .game-container {
@@ -52,7 +53,7 @@
         }
         #scoreboard {
             margin-left: 10px; /* Adjust scoreboard margin */
-            font-size: 16px; /* Resize scoreboard font */
+            font-size: 14px; /* Make scoreboard font smaller */
         }
         #scoreboard ul {
             list-style-type: none;
@@ -218,4 +219,85 @@
             nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
             if (!gameOver) {
                 nextTetromino.x = 1; // Center the block in next block canvas
-                nextTetromino
+                nextTetromino.y = 1;
+                drawTetromino(nextTetromino, nextContext);
+            }
+        }
+
+        function hardDrop() {
+            while (!isColliding(tetromino)) {
+                tetromino.y++;
+            }
+            tetromino.y--;
+            mergeTetromino(tetromino);
+            clearRows();
+            tetromino = nextTetromino;
+            nextTetromino = randomTetromino();
+            drawNextBlock();
+        }
+
+        function startGame() {
+            playerName = playerNameInput.value.trim();
+            if (playerName) {
+                players.push({ name: playerName, score: 0 });
+                updateScoreboard();
+                playButton.disabled = true; // Disable the play button after starting
+                resetGame();
+                update();
+            } else {
+                alert("Please enter a name.");
+            }
+        }
+
+        function resetGame() {
+            score = 0;
+            scoreElement.textContent = 'Score: ' + score;
+            board.forEach((row, y) => {
+                row.fill(0);
+            });
+            tetromino = randomTetromino();
+            nextTetromino = randomTetromino();
+            gameOver = false;
+            drawNextBlock();
+        }
+
+        function updateScoreboard() {
+            topScoresElement.innerHTML = ''; // Clear the scoreboard
+            players.forEach(player => {
+                const li = document.createElement('li');
+                li.textContent = `${player.name}: ${player.score}`;
+                topScoresElement.appendChild(li);
+            });
+        }
+
+        playerNameInput.addEventListener('input', () => {
+            playButton.disabled = playerNameInput.value.trim() === ''; // Enable button if there's input
+        });
+
+        playButton.addEventListener('click', startGame); // Start game on button click
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowUp') {
+                tetromino = rotate(tetromino);
+            } else if (event.key === 'ArrowDown') {
+                tetromino.y++;
+                if (isColliding(tetromino)) {
+                    tetromino.y--;
+                }
+            } else if (event.key === 'ArrowLeft') {
+                tetromino.x--;
+                if (isColliding(tetromino)) {
+                    tetromino.x++;
+                }
+            } else if (event.key === 'ArrowRight') {
+                tetromino.x++;
+                if (isColliding(tetromino)) {
+                    tetromino.x--;
+                }
+            } else if (event.key === ' ') {
+                hardDrop();
+            }
+        });
+    </script>
+</body>
+</html>
