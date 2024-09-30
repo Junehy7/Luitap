@@ -135,7 +135,6 @@
         const nextContext = nextCanvas.getContext('2d');
         const scoreElement = document.getElementById('score');
         const playButton = document.getElementById('playButton');
-        playButton.addEventListener('click', startGame);
         const pauseButton = document.getElementById('pauseButton');
         const playerNameInput = document.getElementById('playerName');
 
@@ -145,7 +144,7 @@
         let gamePaused = false;
 
         const tetrominoes = [
-            { shape: [[1, 1, 1, 1]], color: 'cyan' },
+            { shape: [[1,  1, 1, 1]], color: 'cyan' },
             { shape: [[1, 1], [1, 1]], color: 'yellow' },
             { shape: [[0, 1, 0], [1, 1, 1]], color: 'purple' },
             { shape: [[1, 1, 0], [0, 1, 1]], color: 'green' },
@@ -253,7 +252,7 @@
                     if (value) {
                         context.fillStyle = value;
                         context.fillRect(x * grid, y * grid, grid - 1, grid - 1);
-                        context.strokeStyle = '#000';
+                        context.strokeStyle = '#000 ';
                         context.strokeRect(x * grid, y * grid, grid - 1, grid - 1);
                     }
                 });
@@ -315,6 +314,19 @@
                 pauseButton.textContent = 'Pause';
                 update();
             }
+        }
+
+        function drawTetromino(tetromino, context, offsetX = 0, offsetY = 0) {
+            tetromino.shape.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        context.fillStyle = tetromino.color;
+                        context.fillRect((tetromino.x + x) * grid + offsetX, (tetromino.y + y) * grid + offsetY, grid - 1, grid - 1);
+                        context.strokeStyle = '#000';
+                        context.strokeRect((tetromino.x + x) * grid + offsetX, (tetromino.y + y) * grid + offsetY, grid - 1, grid - 1);
+                    }
+                });
+            });
         }
 
         document.addEventListener('keydown', event => {
@@ -383,6 +395,4 @@
         });
 
         draw();
-    </script>
-</body>
-</html>
+    </script
