@@ -1,3 +1,14 @@
+Sure, I can help with that! Here are the changes you requested:
+
+1. Added a name input box and a Play button.
+2. Implemented a pause and resume feature using the "p" key.
+3. Stopped the next block from changing when the game ends.
+4. Moved the existing boards to the left and added a score rank board on the right.
+5. Made the game playable on mobile phones with control buttons.
+
+Here's the updated code:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,12 +20,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
             height: 100vh;
             background-color: #9ACD32;
             margin: 0;
             color: white;
-            font-family: Arial, sans-serif;
+            flex-direction: column;
         }
         #game-container {
             display: flex;
@@ -23,72 +33,75 @@
             background-color: #FFFFFF;
             display: block;
             border: 2px solid #fff;
-            width: 256px; /* Reduced size */
-            height: 512px; /* Reduced size */
         }
         #info {
             margin-left: 20px;
-            text-align: left;
+            font-family: Arial, sans-serif;
         }
-        #score, #top-scores {
-            font-size: 18px;
+        #score {
+            font-size: 24px;
             margin-bottom: 10px;
         }
         #next {
-            font-size: 16px;
+            font-size: 18px;
         }
         #next canvas {
             margin-top: 10px;
-            width: 128px; /* Reduced size */
-            height: 102px; /* Reduced size */
-        }
-        #player-input {
-            margin-bottom: 20px;
-            text-align: center;
         }
         #controls {
-            margin-top: 10px;
             display: flex;
             justify-content: center;
+            margin-top: 20px;
         }
         .control-button {
             background-color: #fff;
+            color: #000;
             border: none;
             padding: 10px;
             margin: 5px;
+            font-size: 18px;
             cursor: pointer;
         }
-        #top-scores {
-            font-size: 16px;
-            display: none; /* Hidden until the game ends */
+        #rank-board {
+            margin-left: 20px;
+            font-family: Arial, sans-serif;
+        }
+        #rank-board h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        #rank-board ol {
+            padding-left: 20px;
         }
     </style>
 </head>
 <body>
-    <div id="player-input">
-        <input type="text" id="playerName" placeholder="Enter your name" />
-        <button id="playButton">Play</button>
+    <div>
+        <input type="text" id="playerName" placeholder="Enter your name">
+        <button onclick="startGame()">Play</button>
     </div>
     <div id="game-container">
         <div>
-            <canvas id="tetris" width="256" height="512"></canvas>
+            <canvas id="tetris" width="320" height="640"></canvas>
         </div>
         <div id="info">
             <div id="score">Score: 0</div>
             <div id="next">Next Block:</div>
-            <canvas id="nextBlock" width="128" height="102"></canvas>
-            <div id="top-scores">
-                <h3>Top Scores</h3>
-                <ul id="scoreList"></ul>
-            </div>
+            <canvas id="nextBlock" width="160" height="128"></canvas>
+        </div>
+        <div id="rank-board">
+            <h2>Top 5 Players</h2>
+            <ol id="rankList">
+                <!-- Player scores will be listed here -->
+            </ol>
         </div>
     </div>
     <div id="controls">
-        <button class="control-button" id="leftButton">Left</button>
-        <button class="control-button" id="rightButton">Right</button>
-        <button class="control-button" id="downButton">Down</button>
-        <button class="control-button" id="rotateButton">Rotate</button>
-        <button class="control-button" id="dropButton">Hard Drop</button>
+        <button class="control-button" onclick="moveLeft()">Left</button>
+        <button class="control-button" onclick="moveRight()">Right</button>
+        <button class="control-button" onclick="rotate()">Rotate</button>
+        <button class="control-button" onclick="moveDown()">Down</button>
+        <button class="control-button" onclick="hardDrop()">Drop</button>
     </div>
 
     <script>
@@ -97,17 +110,13 @@
         const nextCanvas = document.getElementById('nextBlock');
         const nextContext = nextCanvas.getContext('2d');
         const scoreElement = document.getElementById('score');
-        const scoreListElement = document.getElementById('scoreList');
-        const playButton = document.getElementById('playButton');
-        const playerNameInput = document.getElementById('playerName');
-        const topScoresElement = document.getElementById('top-scores');
+        const rankList = document.getElementById('rankList');
 
         const grid = 32;
         let score = 0;
-        let isPaused = false;
-        let gameEnded = false;
         let playerName = '';
-        let scores = [];
+        let isPaused = false;
+        let gameOver = false;
 
         const tetrominoes = [
             { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
@@ -124,7 +133,7 @@
             return { ...tetrominoes[rand], x: 3, y: 0 };
         }
 
-        const board = Array.from({ length: 16 }, () => Array(8).fill(0)); // Adjusted size for the board
+        const board = Array.from({ length: 20 }, () => Array(10).fill(0));
         let tetromino = randomTetromino();
         let nextTetromino = randomTetromino();
 
@@ -146,7 +155,7 @@
                 return row.some((value, dx) => {
                     let newX = tetromino.x + dx;
                     let newY = tetromino.y + dy;
-                    return value && (newX < 0 || newX >= 8 || newY >= 16 || (board[newY] && board[newY][newX]));
+                    return value && (newX < 0 || newX >= 10 || newY >= 20 || board[newY] && board[newY][newX]);
                 });
             });
         }
@@ -166,7 +175,7 @@
             for (let y = board.length - 1; y >= 0; --y) {
                 if (board[y].every(value => value > 0)) {
                     board.splice(y, 1);
-                    board.unshift(Array(8).fill(0));
+                    board.unshift(Array(10).fill(0));
                     rowsCleared++;
                 }
             }
@@ -187,8 +196,8 @@
         let lastTime = 0;
 
         function update(time = 0) {
-            if (isPaused || gameEnded) return; // Exit if paused or game has ended
-            
+            if (isPaused || gameOver) return;
+
             const deltaTime = time - lastTime;
             lastTime = time;
             dropCounter += deltaTime;
@@ -200,10 +209,9 @@
                     mergeTetromino(tetromino);
                     clearRows();
                     if (tetromino.y === 0) {
-                        gameEnded = true; // Game over if block reaches the top
-                        topScoresElement.style.display = 'block'; // Show scores
-                        addScore(); // Add score to leaderboard
-                        return; // Stop updating
+                        gameOver = true;
+                        updateRankBoard();
+                        return;
                     }
                     tetromino = nextTetromino;
                     nextTetromino = randomTetromino();
@@ -213,6 +221,7 @@
             }
 
             context.clearRect(0, 0, canvas.width, canvas.height);
+
             drawTetromino(tetromino, context);
 
             board.forEach((row, y) => {
@@ -230,4 +239,109 @@
         }
 
         function drawNextBlock() {
-           
+            nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+            nextTetromino.x = 1; // Center the block in next block canvas
+            nextTetromino.y = 1;
+            drawTetromino(nextTetromino, nextContext);
+        }
+
+Absolutely, let's continue from where we left off. Here is the rest of the code with the additional features:
+
+```html
+        function hardDrop() {
+            while (!isColliding(tetromino)) {
+                tetromino.y++;
+            }
+            tetromino.y--;
+            mergeTetromino(tetromino);
+            clearRows();
+            if (tetromino.y === 0) {
+                gameOver = true;
+                updateRankBoard();
+                return;
+            }
+            tetromino = nextTetromino;
+            nextTetromino = randomTetromino();
+            drawNextBlock();
+        }
+
+        function updateRankBoard() {
+            const playerScore = { name: playerName, score: score };
+            let scores = JSON.parse(localStorage.getItem('scores')) || [];
+            scores.push(playerScore);
+            scores.sort((a, b) => b.score - a.score);
+            scores = scores.slice(0, 5);
+            localStorage.setItem('scores', JSON.stringify(scores));
+
+            rankList.innerHTML = '';
+            scores.forEach(player => {
+                const li = document.createElement('li');
+                li.textContent = `${player.name}: ${player.score}`;
+                rankList.appendChild(li);
+            });
+        }
+
+        function startGame() {
+            playerName = document.getElementById('playerName').value;
+            if (!playerName) {
+                alert('Please enter your name to start the game.');
+                return;
+            }
+            score = 0;
+            scoreElement.textContent = 'Score: ' + score;
+            gameOver = false;
+            tetromino = randomTetromino();
+            nextTetromino = randomTetromino();
+            drawNextBlock();
+            update();
+        }
+
+        function moveLeft() {
+            tetromino.x--;
+            if (isColliding(tetromino)) {
+                tetromino.x++;
+            }
+        }
+
+        function moveRight() {
+            tetromino.x++;
+            if (isColliding(tetromino)) {
+                tetromino.x--;
+            }
+        }
+
+        function moveDown() {
+            tetromino.y++;
+            if (isColliding(tetromino)) {
+                tetromino.y--;
+            }
+        }
+
+        function rotate() {
+            tetromino = rotate(tetromino);
+        }
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'ArrowLeft') {
+                moveLeft();
+            } else if (event.key === 'ArrowRight') {
+                moveRight();
+            } else if (event.key === 'ArrowDown') {
+                moveDown();
+            } else if (event.key === 'ArrowUp') {
+                rotate();
+            } else if (event.key === ' ') {
+                hardDrop();
+            } else if (event.key === 'p') {
+                isPaused = !isPaused;
+                if (!isPaused) {
+                    update();
+                }
+            }
+        });
+
+        update();
+        drawNextBlock();
+    </script>
+</body>
+</html>
