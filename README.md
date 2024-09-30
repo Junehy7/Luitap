@@ -1,4 +1,3 @@
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -33,9 +32,34 @@
         #next canvas {
             margin-top: 10px;
         }
+        #player-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        #ranking {
+            font-size: 18px;
+            margin-left: 20px;
+        }
+        #ranking table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 10px;
+        }
+        #ranking table th, #ranking table td {
+            border: 1px solid white;
+            padding: 8px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+    <div id="player-input">
+        <label for="playerName">Enter your name: </label>
+        <input type="text" id="playerName" placeholder="Your Name">
+        <button id="startGame">Start Game</button>
+    </div>
     <div>
         <canvas id="tetris" width="320" height="640"></canvas>
     </div>
@@ -44,8 +68,41 @@
         <div id="next">Next Block:</div>
         <canvas id="nextBlock" width="160" height="128"></canvas>
     </div>
+    <div id="ranking">
+        <div>Top 5 Players</div>
+        <table>
+            <thead>
+                <tr><th>Rank</th><th>Name</th><th>Score</th></tr>
+            </thead>
+            <tbody id="rankList">
+                <tr><td>1</td><td>-</td><td>0</td></tr>
+                <tr><td>2</td><td>-</td><td>0</td></tr>
+                <tr><td>3</td><td>-</td><td>0</td></tr>
+                <tr><td>4</td><td>-</td><td>0</td></tr>
+                <tr><td>5</td><td>-</td><td>0</td></tr>
+            </tbody>
+        </table>
+    </div>
 
     <script>
+        const playerInputDiv = document.getElementById('player-input');
+        const playerNameInput = document.getElementById('playerName');
+        const startGameBtn = document.getElementById('startGame');
+        let playerName = '';
+        let isPaused = false;
+        let gameOver = false;
+        let score = 0;
+
+        startGameBtn.addEventListener('click', () => {
+            playerName = playerNameInput.value.trim();
+            if (playerName) {
+                playerInputDiv.style.display = 'none'; // Hide name input
+                startGame();
+            } else {
+                alert("Please enter your name.");
+            }
+        });
+
         const canvas = document.getElementById('tetris');
         const context = canvas.getContext('2d');
         const nextCanvas = document.getElementById('nextBlock');
@@ -53,7 +110,6 @@
         const scoreElement = document.getElementById('score');
 
         const grid = 32;
-        let score = 0;
 
         const tetrominoes = [
             { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
@@ -133,6 +189,8 @@
         let lastTime = 0;
 
         function update(time = 0) {
+            if (isPaused || gameOver) return;
+
             const deltaTime = time - lastTime;
             lastTime = time;
             dropCounter += deltaTime;
@@ -143,6 +201,10 @@
                     tetromino.y--;
                     mergeTetromino(tetromino);
                     clearRows();
+                    if (tetromino.y === 0) {
+                        endGame();
+                        return;
+                    }
                     tetromino = nextTetromino;
                     nextTetromino = randomTetromino();
                     drawNextBlock();
@@ -165,53 +227,4 @@
                 });
             });
 
-            requestAnimationFrame(update);
-        }
-
-        function drawNextBlock() {
-            nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-            nextTetromino.x = 1; // Center the block in next block canvas
-            nextTetromino.y = 1;
-            drawTetromino(nextTetromino, nextContext);
-        }
-
-        function hardDrop() {
-            while (!isColliding(tetromino)) {
-                tetromino.y++;
-            }
-            tetromino.y--;
-            mergeTetromino(tetromino);
-            clearRows();
-            tetromino = nextTetromino;
-            nextTetromino = randomTetromino();
-            drawNextBlock();
-        }
-
-        document.addEventListener('keydown', event => {
-            if (event.key === 'ArrowLeft') {
-                tetromino.x--;
-                if (isColliding(tetromino)) {
-                    tetromino.x++;
-                }
-            } else if (event.key === 'ArrowRight') {
-                tetromino.x++;
-                if (isColliding(tetromino)) {
-                    tetromino.x--;
-                }
-            } else if (event.key === 'ArrowDown') {
-                tetromino.y++;
-                if (isColliding(tetromino)) {
-                    tetromino.y--;
-                }
-            } else if (event.key === 'ArrowUp') {
-                tetromino = rotate(tetromino);
-            } else if (event.key === ' ') {
-                hardDrop();
-            }
-        });
-
-        update();
-        drawNextBlock();
-    </script>
-</body>
-</html>
+           
