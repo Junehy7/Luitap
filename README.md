@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -42,7 +43,7 @@
         #nextBlock {
             margin-top: 5px;
         }
-        #playButton, #pauseButton, #pauseHint {
+        #playButton, #pauseButton {
             margin: 10px;
             padding: 10px 20px;
             font-size: 18px;
@@ -54,10 +55,6 @@
         }
         #playButton:hover, #pauseButton:hover {
             background-color: #45a049;
-        }
-        #pauseHint {
-            opacity: 0.7;
-            cursor: default;
         }
         #mobileControls {
             display: none;
@@ -86,6 +83,12 @@
         #controlsBottom {
             margin-top: 10px;
         }
+        #pauseButton {
+            flex-grow: 1;
+            width: auto;
+            padding: 15px 50px; /* Increase size for "Pause/Continue" */
+            font-size: 20px;
+        }
         @media (max-width: 768px) {
             body {
                 background-color: #9ACD32;
@@ -108,7 +111,6 @@
 <body>
     <div id="gameContainer">
         <button id="playButton">Play</button>
-        <button id="pauseHint" disabled>Press P to Pause/Continue</button>
         <div id="gameArea">
             <div>
                 <canvas id="tetris" width="240" height="400"></canvas>
@@ -141,7 +143,6 @@
         const scoreElement = document.getElementById('score');
         const playButton = document.getElementById('playButton');
         const pauseButton = document.getElementById('pauseButton');
-        const pauseHint = document.getElementById('pauseHint');
 
         const grid = 20;
         let score = 0;
@@ -170,7 +171,7 @@
         function drawNextBlock() {
             nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
             const offsetX = Math.floor((nextCanvas.width - nextTetromino.shape[0].length * grid) / 2);
-            const offsetY = Math.floor((nextCanvas.height - nextTetromino.shape.length * grid) / 2);
+            const offsetY = Math.floor((nextCanvas.height - nextTetromino.shape.length * grid) / 2 + 10); // Adjust to center lower
             drawTetromino(nextTetromino, nextContext, offsetX / grid, offsetY / grid);
         }
 
@@ -232,144 +233,4 @@
                     tetromino.y--;
                     mergeTetromino(tetromino);
                     clearRows();
-                    tetromino = nextTetromino;
-                    if (isColliding(tetromino)) {
-                        gameOver();
-                        return;
-                    }
-                    nextTetromino = randomTetromino();
-                    drawNextBlock();
-                }
-                dropCounter = 0;
-            }
-
-            draw();
-            requestAnimationFrame(update);
-        }
-
-        function draw() {
-            context.clearRect(0, 0, canvas.width, canvas.height);
-
-            board.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value) {
-                        context.fillStyle = value;
-                        context.fillRect(x * grid, y * grid, grid - 1, grid - 1);
-                        context.strokeStyle = '#000';
-                        context.strokeRect(x * grid, y * grid, grid - 1, grid - 1);
-                    }
-                });
-            });
-
-            drawTetromino(tetromino, context);
-        }
-
-        function hardDrop() {
-            while (!isColliding(tetromino)) {
-                tetromino.y++;
-            }
-            tetromino.y--;
-            mergeTetromino(tetromino);
-            clearRows();
-            tetromino = nextTetromino;
-            if (isColliding(tetromino)) {
-                gameOver();
-                return;
-            }
-            nextTetromino = randomTetromino();
-            drawNextBlock();
-        }
-
-        function gameOver() {
-            gameRunning = false;
-            alert('Game Over! Your score: ' + score);
-        }
-
-        function startGame() {
-            if (gameRunning) return;
-
-            board.forEach(row => row.fill(0));
-            score = 0;
-            scoreElement.textContent = 'Score: 0';
-            tetromino = randomTetromino();
-            nextTetromino = randomTetromino();
-            drawNextBlock();
-            gameRunning = true;
-            gamePaused = false;
-            pauseButton.textContent = 'Pause';
-            update();
-        }
-
-        function togglePause() {
-            if (!gameRunning) return;
-
-            gamePaused = !gamePaused;
-            if (gamePaused) {
-                pauseButton.textContent = 'Continue';
-            } else {
-                pauseButton.textContent = 'Pause';
-                update();
-            }
-        }
-
-        function drawTetromino(tetromino, context, offsetX = 0, offsetY = 0) {
-            tetromino.shape.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value) {
-                        context.fillStyle = tetromino.color;
-                        context.fillRect((tetromino.x + x) * grid + offsetX, (tetromino.y + y) * grid + offsetY, grid - 1, grid - 1);
-                        context.strokeStyle = '#000';
-                        context.strokeRect((tetromino.x + x) * grid + offsetX, (tetromino.y + y) * grid + offsetY, grid - 1, grid - 1);
-                    }
-                });
-            });
-        }
-
-        document.addEventListener('keydown', event => {
-            if (event.key === 'p' || event.key === 'P') {
-                togglePause();
-            }
-        });
-
-        playButton.addEventListener('click', startGame);
-        pauseButton.addEventListener('click', togglePause);
-
-        // Mobile controls
-        document.getElementById('leftButton').addEventListener('click', () => {
-            if (!gameRunning || gamePaused) return;
-            tetromino.x--;
-            if (isColliding(tetromino)) {
-                tetromino.x++;
-            }
-        });
-
-        document.getElementById('rightButton').addEventListener('click', () => {
-            if (!gameRunning || gamePaused) return;
-            tetromino.x++;
-            if (isColliding(tetromino)) {
-                tetromino.x--;
-            }
-        });
-
-        document.getElementById('rotateButton').addEventListener('click', () => {
-            if (!gameRunning || gamePaused) return;
-            tetromino = rotate(tetromino);
-        });
-
-        document.getElementById('downButton').addEventListener('click', () => {
-            if (!gameRunning || gamePaused) return;
-            tetromino.y++;
-            if (isColliding(tetromino)) {
-                tetromino.y--;
-            }
-        });
-
-        document.getElementById('dropButton').addEventListener('click', () => {
-            if (!gameRunning || gamePaused) return;
-            hardDrop();
-        });
-
-        draw();
-    </script>
-</body>
-</html>
+                    tetromino = nextTetromino
