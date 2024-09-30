@@ -82,12 +82,6 @@
         #controlsBottom {
             margin-top: 10px;
         }
-        #pauseButtonMobile {
-            width: 120px;
-            height: 60px;
-            font-size: 18px;
-            border-radius: 10px;
-        }
         @media (max-width: 768px) {
             body {
                 background-color: #9ACD32;
@@ -103,9 +97,6 @@
             #mobileControls {
                 display: flex;
                 flex-direction: column;
-            }
-            #controlsTop {
-                justify-content: space-around;
             }
         }
     </style>
@@ -126,8 +117,8 @@
         <div id="mobileControls">
             <div id="controlsTop">
                 <button class="mobileButton" id="dropButton">⤓</button>
+                <button class="mobileButton" id="pauseButton">II</button>
                 <button class="mobileButton" id="rotateButton">↻</button>
-                <button id="pauseButtonMobile">Pause</button>
             </div>
             <div id="controlsBottom">
                 <button class="mobileButton" id="leftButton">←</button>
@@ -145,52 +136,157 @@
         const scoreElement = document.getElementById('score');
         const playButton = document.getElementById('playButton');
         const pauseButton = document.getElementById('pauseButton');
-        const pauseButtonMobile = document .getElementById('pauseButtonMobile');
-        const dropButton = document.getElementById('dropButton');
-        const rotateButton = document.getElementById('rotateButton');
-        const leftButton = document.getElementById('leftButton');
-        const downButton = document.getElementById('downButton');
-        const rightButton = document.getElementById('rightButton');
+        const playerNameInput = document.getElementById('playerName');
 
-        let board = [];
+        const grid = 20;
         let score = 0;
         let gameRunning = false;
         let gamePaused = false;
-        let tetromino = null;
-        let nextTetromino = null;
 
-        function createBoard() {
-            for (let i = 0; i < 20; i++) {
-                board[i] = [];
-                for (let j = 0; j < 10; j++) {
-                    board[i][j] = 0;
+        const tetrominoes = [
+            { shape: [[1,  1, 1, 1]], color: 'cyan' },
+            { shape: [[1, 1], [1, 1]], color: 'yellow' },
+            { shape: [[0, 1, 0], [1, 1, 1]], color: 'purple' },
+            { shape: [[1, 1, 0], [0, 1, 1]], color: 'green' },
+            { shape: [[0, 1, 1], [1, 1, 0]], color: 'red' },
+            { shape: [[1, 0, 0], [1, 1, 1]], color: 'orange' },
+            { shape: [[0, 0, 1], [1, 1, 1]], color: 'blue' }
+        ];
+
+        function randomTetromino() {
+            const rand = Math.floor(Math.random() * tetrominoes.length);
+            return { ...tetrominoes[rand], x: 3, y: 0 };
+        }
+
+        const board = Array.from({ length: 20 }, () => Array(12).fill(0));
+        let tetromino = randomTetromino();
+        let nextTetromino = randomTetromino();
+
+        function drawNextBlock() {
+            nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+            const blockWidth = nextTetromino.shape[0].length;
+            const blockHeight = nextTetromino.shape.length;
+            const offsetX = Math.floor((nextCanvas.width / grid - blockWidth) / 2) - 1;
+            const offsetY = Math.floor((nextCanvas.height / grid - blockHeight) / 2);
+            drawTetromino(nextTetromino, nextContext, offsetX, offsetY);
+        }
+
+        function isColliding(tetromino) {
+            return tetromino.shape.some((row, dy) => {
+                return row.some((value, dx) => {
+                    let newX = tetromino.x + dx;
+                    let newY = tetromino.y + dy;
+                    return value && (newX < 0 || newX >= 12 || newY >= 20 || board[newY] && board[newY][newX]);
+                });
+            });
+        }
+
+        function mergeTetromino(tetromino) {
+            tetromino.shape.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        board[tetromino.y + y][tetromino.x + x] = tetromino.color;
+                    }
+                });
+            });
+        }
+
+        function clearRows() {
+            let rowsCleared = 0;
+            for (let y = board.length - 1; y >= 0; --y) {
+                if (board[y].every(value => value !== 0)) {
+                    board.splice(y, 1);
+                    board.unshift(Array(12).fill(0));
+                    rowsCleared++;
                 }
+            }
+            if (rowsCleared > 0) {
+                score += rowsCleared * 100;
+                scoreElement.textContent = 'Score: ' + score;
             }
         }
 
-        function randomTetromino() {
-            const tetrominos = [
-                [[1, 1], [1, 1]],
-                [[1, 1, 1, 1]],
-                [[1, 0, 0], [1, 1, 1]],
-                [[0, 0, 1], [1, 1, 1]],
-                [[1, 1], [1, 0], [1, 0]],
-                [[0, 1], [0, 1], [1, 1]],
-                [[0, 1, 1], [1, 1, 0]]
-            ];
-            return tetrominos[Math.floor(Math.random() * tetrominos.length)];
+        function rotate(tetromino) {
+            const rotatedShape = tetromino.shape[0].map((_, i) => tetromino.shape.map(row => row[i])).reverse();
+            const newTetromino = { ...tetromino, shape: rotatedShape };
+            return isColliding(newTetromino) ? tetromino : newTetromino;
+        }
+
+        let dropCounter = 0;
+        let dropInterval = 1000;
+        let lastTime = 0;
+
+        function update(time = 0) {
+            if (!gameRunning || gamePaused) return;
+
+            const deltaTime = time - lastTime;
+            lastTime = time;
+            dropCounter += deltaTime;
+
+            if (dropCounter > dropInterval) {
+                tetromino.y++;
+                if (isColliding(tetromino)) {
+                    tetromino.y--;
+                    mergeTetromino(tetromino);
+                    clearRows();
+                    tetromino = nextTetromino;
+                    if (isColliding(tetromino)) {
+                        gameOver();
+                        return;
+                    }
+                    nextTetromino = randomTetromino();
+                    drawNextBlock();
+                }
+                dropCounter = 0;
+            }
+
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        function draw() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            board.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        context.fillStyle = value;
+                        context.fillRect(x * grid, y * grid, grid - 1, grid - 1);
+                        context.strokeStyle = '#000';
+                        context.strokeRect(x * grid, y * grid, grid - 1, grid - 1);
+                    }
+                });
+            });
+
+            drawTetromino(tetromino, context);
         }
 
         function drawNextBlock() {
             nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-            for (let i = 0; i < nextTetromino.length; i++) {
-                for (let j = 0; j < nextTetromino[i].length; j++) {
-                    if (nextTetromino[i][j] === 1) {
-                        nextContext.fillStyle = 'blue';
-                        nextContext.fillRect(j * 20, i * 20, 20, 20);
-                    }
-                }
+            const offsetX = (nextCanvas.width / grid - nextTetromino.shape[0].length) / 2;
+            const offsetY = (nextCanvas.height / grid - nextTetromino.shape.length) / 2;
+            drawTetromino(nextTetromino, nextContext, offsetX, offsetY);
+        }
+
+        function hardDrop() {
+            while (!isColliding(tetromino)) {
+                tetromino.y++;
             }
+            tetromino.y--;
+            mergeTetromino(tetromino);
+            clearRows();
+            tetromino = nextTetromino;
+            if (isColliding(tetromino)) {
+                gameOver();
+                return;
+            }
+            nextTetromino = randomTetromino();
+            drawNextBlock();
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            alert('Game Over! Your score: ' + score);
         }
 
         function startGame() {
@@ -205,30 +301,98 @@
             gameRunning = true;
             gamePaused = false;
             pauseButton.textContent = 'Pause';
-            pauseButtonMobile.textContent = 'Pause';
             update();
         }
 
-        function update() {
-            // Game logic here
-        }
-
         function togglePause() {
-            if (gameRunning) {
-                gamePaused = !gamePaused;
-                if (gamePaused) {
-                    pauseButton.textContent = 'Resume';
-                    pauseButtonMobile.textContent = 'Resume';
-                } else {
-                    pauseButton.textContent = 'Pause';
-                    pauseButtonMobile.textContent = 'Pause';
-                }
+            if (!gameRunning) return;
+
+            gamePaused = !gamePaused;
+            if (gamePaused) {
+                pauseButton.textContent = 'Continue';
+            } else {
+                pauseButton.textContent = 'Pause';
+                update();
             }
         }
 
+        function drawTetromino(tetromino, context, offsetX = 0, offsetY = 0) {
+            tetromino.shape.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        context.fillStyle = tetromino.color;
+                        context.fillRect((tetromino.x + x) * grid + offsetX, (tetromino.y + y) * grid + offsetY, grid - 1, grid - 1);
+                        context.strokeStyle = '#000';
+                        context.strokeRect((tetromino.x + x) * grid + offsetX, (tetromino.y + y) * grid + offsetY, grid - 1, grid - 1);
+                    }
+                });
+            });
+        }
+
+        document.addEventListener('keydown', event => {
+            if (!gameRunning || gamePaused) return;
+
+            if (event.key === 'ArrowLeft') {
+                tetromino.x--;
+                if (isColliding(tetromino)) {
+                    tetromino.x++;
+                }
+            } else if (event.key === 'ArrowRight') {
+                tetromino.x++;
+                if (isColliding(tetromino)) {
+                    tetromino.x--;
+                }
+            } else if (event.key === 'ArrowDown') {
+                tetromino.y++;
+                if (isColliding(tetromino)) {
+                    tetromino.y--;
+                }
+            } else if (event.key === 'ArrowUp') {
+                tetromino = rotate(tetromino);
+            } else if (event.key === ' ') {
+                hardDrop();
+            } else if (event.key === 'p') {
+                togglePause();
+            }
+        });
+
         playButton.addEventListener('click', startGame);
         pauseButton.addEventListener('click', togglePause);
-        pauseButtonMobile.addEventListener('click', togglePause);
-    </script>
-</body>
-</html>
+
+        // Mobile controls
+        document.getElementById('leftButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            tetromino.x--;
+            if (isColliding(tetromino)) {
+                tetromino.x++;
+            }
+        });
+
+        document.getElementById('rightButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            tetromino.x++;
+            if (isColliding(tetromino)) {
+                tetromino.x--;
+            }
+        });
+
+        document.getElementById('rotateButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            tetromino = rotate(tetromino);
+        });
+
+        document.getElementById('downButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            tetromino.y++;
+            if (isColliding(tetromino)) {
+                tetromino.y--;
+            }
+        });
+
+        document.getElementById('dropButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            hardDrop();
+        });
+
+        draw();
+    </script
