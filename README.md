@@ -42,7 +42,7 @@
     <div id="info">
         <div id="score">Score: 0</div>
         <div id="next">Next Block:</div>
-        <canvas id="nextBlock" width="128" height="160"></canvas>
+        <canvas id="nextBlock" width="160" height="128"></canvas>
     </div>
 
     <script>
