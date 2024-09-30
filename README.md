@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -42,7 +43,7 @@
         #nextBlock {
             margin-top: 5px;
         }
-        #playButton, #pauseButton {
+        #playButton, #pauseButton, #pauseHint {
             margin: 10px;
             padding: 10px 20px;
             font-size: 18px;
@@ -54,6 +55,10 @@
         }
         #playButton:hover, #pauseButton:hover {
             background-color: #45a049;
+        }
+        #pauseHint {
+            opacity: 0.7;
+            cursor: default;
         }
         #mobileControls {
             display: none;
@@ -77,7 +82,7 @@
         }
         #controlsTop, #controlsBottom {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-around;
         }
         #controlsBottom {
             margin-top: 10px;
@@ -104,6 +109,7 @@
 <body>
     <div id="gameContainer">
         <button id="playButton">Play</button>
+        <button id="pauseHint" disabled>Press P to Pause/Continue</button>
         <div id="gameArea">
             <div>
                 <canvas id="tetris" width="240" height="400"></canvas>
@@ -136,7 +142,7 @@
         const scoreElement = document.getElementById('score');
         const playButton = document.getElementById('playButton');
         const pauseButton = document.getElementById('pauseButton');
-        const playerNameInput = document.getElementById('playerName');
+        const pauseHint = document.getElementById('pauseHint');
 
         const grid = 20;
         let score = 0;
@@ -164,11 +170,9 @@
 
         function drawNextBlock() {
             nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-            const blockWidth = nextTetromino.shape[0].length;
-            const blockHeight = nextTetromino.shape.length;
-            const offsetX = Math.floor((nextCanvas.width / grid - blockWidth) / 2) - 1;
-            const offsetY = Math.floor((nextCanvas.height / grid - blockHeight) / 2);
-            drawTetromino(nextTetromino, nextContext, offsetX, offsetY);
+            const offsetX = Math.floor((nextCanvas.width - nextTetromino.shape[0].length * grid) / 2);
+            const offsetY = Math.floor((nextCanvas.height - nextTetromino.shape.length * grid) / 2);
+            drawTetromino(nextTetromino, nextContext, offsetX / grid, offsetY / grid);
         }
 
         function isColliding(tetromino) {
@@ -261,13 +265,6 @@
             drawTetromino(tetromino, context);
         }
 
-        function drawNextBlock() {
-            nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-            const offsetX = (nextCanvas.width / grid - nextTetromino.shape[0].length) / 2;
-            const offsetY = (nextCanvas.height / grid - nextTetromino.shape.length) / 2;
-            drawTetromino(nextTetromino, nextContext, offsetX, offsetY);
-        }
-
         function hardDrop() {
             while (!isColliding(tetromino)) {
                 tetromino.y++;
@@ -330,28 +327,7 @@
         }
 
         document.addEventListener('keydown', event => {
-            if (!gameRunning || gamePaused) return;
-
-            if (event.key === 'ArrowLeft') {
-                tetromino.x--;
-                if (isColliding(tetromino)) {
-                    tetromino.x++;
-                }
-            } else if (event.key === 'ArrowRight') {
-                tetromino.x++;
-                if (isColliding(tetromino)) {
-                    tetromino.x--;
-                }
-            } else if (event.key === 'ArrowDown') {
-                tetromino.y++;
-                if (isColliding(tetromino)) {
-                    tetromino.y--;
-                }
-            } else if (event.key === 'ArrowUp') {
-                tetromino = rotate(tetromino);
-            } else if (event.key === ' ') {
-                hardDrop();
-            } else if (event.key === 'p') {
+            if (event.key === 'p' || event.key === 'P') {
                 togglePause();
             }
         });
@@ -395,4 +371,6 @@
         });
 
         draw();
-    </script
+    </script>
+</body>
+</html>
