@@ -22,6 +22,7 @@ Cute Tetris
             max-width: 100%;
             padding: 10px;
         }
+        <button id="playButton">Play</button>
         #gameArea {
             display: flex;
             justify-content: center;
