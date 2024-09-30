@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -85,8 +86,8 @@
         #pauseButton {
             flex-grow: 1;
             width: auto;
-            padding: 15px 50px; /* Increase size for "Pause/Continue" */
-            font-size: 20px;
+            padding: 10px 30px; /* Smaller padding */
+            font-size: 18px; /* Slightly smaller font */
         }
         @media (max-width: 768px) {
             body {
