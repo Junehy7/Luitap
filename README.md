@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,7 +9,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             background-color: #9ACD32;
             margin: 0;
             color: white;
@@ -18,6 +19,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            max-width: 100%;
+            padding: 10px;
         }
         #gameArea {
             display: flex;
@@ -31,7 +34,7 @@
         }
         #info {
             margin-left: 10px;
-            width: 120px;
+            width: 140px;
         }
         #score, #next {
             font-size: 16px;
@@ -40,42 +43,51 @@
         #nextBlock {
             margin-top: 5px;
         }
-        #leaderboard {
-            margin-left: 10px;
-            width: 150px;
-        }
-        #leaderboard h3 {
-            margin-top: 0;
-        }
         #nameInput {
             margin-bottom: 10px;
         }
-        #playButton {
+        #playButton, #pauseButton {
             margin-bottom: 10px;
+            padding: 5px 10px;
+            font-size: 16px;
         }
         #mobileControls {
             display: none;
-            margin-top: 10px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 300px;
         }
         .mobileButton {
             font-size: 24px;
             margin: 5px;
-            padding: 10px;
-            background-color: rgba(255, 255, 255, 0.5);
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.7);
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
+            touch-action: manipulation;
         }
-        @media (max-width: 600px) {
+        #controlsTop, #controlsBottom {
+            display: flex;
+            justify-content: space-between;
+        }
+        #controlsBottom {
+            margin-top: 10px;
+        }
+        @media (max-width: 768px) {
+            body {
+                background-color: #9ACD32;
+            }
             #gameArea {
                 flex-direction: column;
                 align-items: center;
             }
-            #info, #leaderboard {
+            #info {
                 margin-left: 0;
                 margin-top: 10px;
             }
             #mobileControls {
-                display: block;
+                display: flex;
+                flex-direction: column;
             }
         }
     </style>
@@ -93,19 +105,20 @@
             <div id="info">
                 <div id="score">Score: 0</div>
                 <div id="next">Next Block:</div>
-                <canvas id="nextBlock" width="80" height="80"></canvas>
-            </div>
-            <div id="leaderboard">
-                <h3>Top 5 Players</h3>
-                <ol id="leaderboardList"></ol>
+                <canvas id="nextBlock" width="140" height="140"></canvas>
             </div>
         </div>
         <div id="mobileControls">
-            <button class="mobileButton" id="leftButton">←</button>
-            <button class="mobileButton" id="rightButton">→</button>
-            <button class="mobileButton" id="rotateButton">↻</button>
-            <button class="mobileButton" id="downButton">↓</button>
-            <button class="mobileButton" id="dropButton">Drop</button>
+            <div id="controlsTop">
+                <button class="mobileButton" id="rotateButton">↻</button>
+                <button class="mobileButton" id="pauseButton">Pause</button>
+                <button class="mobileButton" id="dropButton">⤓</button>
+            </div>
+            <div id="controlsBottom">
+                <button class="mobileButton" id="leftButton">←</button>
+                <button class="mobileButton" id="downButton">↓</button>
+                <button class="mobileButton" id="rightButton">→</button>
+            </div>
         </div>
     </div>
 
@@ -116,14 +129,13 @@
         const nextContext = nextCanvas.getContext('2d');
         const scoreElement = document.getElementById('score');
         const playButton = document.getElementById('playButton');
+        const pauseButton = document.getElementById('pauseButton');
         const playerNameInput = document.getElementById('playerName');
-        const leaderboardList = document.getElementById('leaderboardList');
 
         const grid = 20;
         let score = 0;
         let gameRunning = false;
         let gamePaused = false;
-        let leaderboard = [];
 
         const tetrominoes = [
             { shape: [[1, 1, 1, 1]], color: 'cyan' },
@@ -249,7 +261,9 @@
 
         function drawNextBlock() {
             nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-            drawTetromino(nextTetromino, nextContext, -2, -1);
+            const offsetX = (nextCanvas.width / grid - nextTetromino.shape[0].length) / 2;
+            const offsetY = (nextCanvas.height / grid - nextTetromino.shape.length) / 2;
+            drawTetromino(nextTetromino, nextContext, offsetX, offsetY);
         }
 
         function hardDrop() {
@@ -270,25 +284,7 @@
 
         function gameOver() {
             gameRunning = false;
-            updateLeaderboard();
             alert('Game Over! Your score: ' + score);
-        }
-
-        function updateLeaderboard() {
-            const playerName = playerNameInput.value || 'Anonymous';
-            leaderboard.push({ name: playerName, score: score });
-            leaderboard.sort((a, b) => b.score - a.score);
-            leaderboard = leaderboard.slice(0, 5);
-            displayLeaderboard();
-        }
-
-        function displayLeaderboard() {
-            leaderboardList.innerHTML = '';
-            leaderboard.forEach(entry => {
-                const li = document.createElement('li');
-                li.textContent = `${entry.name}: ${entry.score}`;
-                leaderboardList.appendChild(li);
-            });
         }
 
         function startGame() {
@@ -302,6 +298,7 @@
             drawNextBlock();
             gameRunning = true;
             gamePaused = false;
+            pauseButton.textContent = 'Pause';
             update();
         }
 
@@ -309,7 +306,10 @@
             if (!gameRunning) return;
 
             gamePaused = !gamePaused;
-            if (!gamePaused) {
+            if (gamePaused) {
+                pauseButton.textContent = 'Continue';
+            } else {
+                pauseButton.textContent = 'Pause';
                 update();
             }
         }
@@ -342,6 +342,7 @@
         });
 
         playButton.addEventListener('click', startGame);
+        pauseButton.addEventListener('click', togglePause);
 
         // Mobile controls
         document.getElementById('leftButton').addEventListener('click', () => {
