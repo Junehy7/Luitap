@@ -1,4 +1,3 @@
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,40 +8,86 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-direction: column;
             height: 100vh;
             background-color: #9ACD32;
             margin: 0;
             color: white;
+            font-family: Arial, sans-serif;
+        }
+        #game-container {
+            display: flex;
         }
         canvas {
             background-color: #FFFFFF;
             display: block;
             border: 2px solid #fff;
+            width: 256px; /* Reduced size */
+            height: 512px; /* Reduced size */
         }
         #info {
             margin-left: 20px;
-            font-family: Arial, sans-serif;
+            text-align: left;
         }
-        #score {
-            font-size: 24px;
+        #score, #top-scores {
+            font-size: 18px;
             margin-bottom: 10px;
         }
         #next {
-            font-size: 18px;
+            font-size: 16px;
         }
         #next canvas {
             margin-top: 10px;
+            width: 128px; /* Reduced size */
+            height: 102px; /* Reduced size */
+        }
+        #player-input {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #controls {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+        }
+        .control-button {
+            background-color: #fff;
+            border: none;
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        #top-scores {
+            font-size: 16px;
+            display: none; /* Hidden until the game ends */
         }
     </style>
 </head>
 <body>
-    <div>
-        <canvas id="tetris" width="320" height="640"></canvas>
+    <div id="player-input">
+        <input type="text" id="playerName" placeholder="Enter your name" />
+        <button id="playButton">Play</button>
     </div>
-    <div id="info">
-        <div id="score">Score: 0</div>
-        <div id="next">Next Block:</div>
-        <canvas id="nextBlock" width="160" height="128"></canvas>
+    <div id="game-container">
+        <div>
+            <canvas id="tetris" width="256" height="512"></canvas>
+        </div>
+        <div id="info">
+            <div id="score">Score: 0</div>
+            <div id="next">Next Block:</div>
+            <canvas id="nextBlock" width="128" height="102"></canvas>
+            <div id="top-scores">
+                <h3>Top Scores</h3>
+                <ul id="scoreList"></ul>
+            </div>
+        </div>
+    </div>
+    <div id="controls">
+        <button class="control-button" id="leftButton">Left</button>
+        <button class="control-button" id="rightButton">Right</button>
+        <button class="control-button" id="downButton">Down</button>
+        <button class="control-button" id="rotateButton">Rotate</button>
+        <button class="control-button" id="dropButton">Hard Drop</button>
     </div>
 
     <script>
@@ -51,9 +96,17 @@
         const nextCanvas = document.getElementById('nextBlock');
         const nextContext = nextCanvas.getContext('2d');
         const scoreElement = document.getElementById('score');
+        const scoreListElement = document.getElementById('scoreList');
+        const playButton = document.getElementById('playButton');
+        const playerNameInput = document.getElementById('playerName');
+        const topScoresElement = document.getElementById('top-scores');
 
         const grid = 32;
         let score = 0;
+        let isPaused = false;
+        let gameEnded = false;
+        let playerName = '';
+        let scores = [];
 
         const tetrominoes = [
             { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
@@ -70,7 +123,7 @@
             return { ...tetrominoes[rand], x: 3, y: 0 };
         }
 
-        const board = Array.from({ length: 20 }, () => Array(10).fill(0));
+        const board = Array.from({ length: 16 }, () => Array(8).fill(0)); // Adjusted size for the board
         let tetromino = randomTetromino();
         let nextTetromino = randomTetromino();
 
@@ -92,7 +145,7 @@
                 return row.some((value, dx) => {
                     let newX = tetromino.x + dx;
                     let newY = tetromino.y + dy;
-                    return value && (newX < 0 || newX >= 10 || newY >= 20 || board[newY] && board[newY][newX]);
+                    return value && (newX < 0 || newX >= 8 || newY >= 16 || (board[newY] && board[newY][newX]));
                 });
             });
         }
@@ -112,7 +165,7 @@
             for (let y = board.length - 1; y >= 0; --y) {
                 if (board[y].every(value => value > 0)) {
                     board.splice(y, 1);
-                    board.unshift(Array(10).fill(0));
+                    board.unshift(Array(8).fill(0));
                     rowsCleared++;
                 }
             }
@@ -133,6 +186,8 @@
         let lastTime = 0;
 
         function update(time = 0) {
+            if (isPaused || gameEnded) return; // Exit if paused or game has ended
+            
             const deltaTime = time - lastTime;
             lastTime = time;
             dropCounter += deltaTime;
@@ -143,6 +198,12 @@
                     tetromino.y--;
                     mergeTetromino(tetromino);
                     clearRows();
+                    if (tetromino.y === 0) {
+                        gameEnded = true; // Game over if block reaches the top
+                        topScoresElement.style.display = 'block'; // Show scores
+                        addScore(); // Add score to leaderboard
+                        return; // Stop updating
+                    }
                     tetromino = nextTetromino;
                     nextTetromino = randomTetromino();
                     drawNextBlock();
@@ -150,68 +211,4 @@
                 dropCounter = 0;
             }
 
-            context.clearRect(0, 0, canvas.width, canvas.height);
-
-            drawTetromino(tetromino, context);
-
-            board.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value) {
-                        context.fillStyle = 'gray';
-                        context.fillRect(x * grid, y * grid, grid, grid);
-                        context.strokeStyle = '#000';
-                        context.strokeRect(x * grid, y * grid, grid, grid);
-                    }
-                });
-            });
-
-            requestAnimationFrame(update);
-        }
-
-        function drawNextBlock() {
-            nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-            nextTetromino.x = 1; // Center the block in next block canvas
-            nextTetromino.y = 1;
-            drawTetromino(nextTetromino, nextContext);
-        }
-
-        function hardDrop() {
-            while (!isColliding(tetromino)) {
-                tetromino.y++;
-            }
-            tetromino.y--;
-            mergeTetromino(tetromino);
-            clearRows();
-            tetromino = nextTetromino;
-            nextTetromino = randomTetromino();
-            drawNextBlock();
-        }
-
-        document.addEventListener('keydown', event => {
-            if (event.key === 'ArrowLeft') {
-                tetromino.x--;
-                if (isColliding(tetromino)) {
-                    tetromino.x++;
-                }
-            } else if (event.key === 'ArrowRight') {
-                tetromino.x++;
-                if (isColliding(tetromino)) {
-                    tetromino.x--;
-                }
-            } else if (event.key === 'ArrowDown') {
-                tetromino.y++;
-                if (isColliding(tetromino)) {
-                    tetromino.y--;
-                }
-            } else if (event.key === 'ArrowUp') {
-                tetromino = rotate(tetromino);
-            } else if (event.key === ' ') {
-                hardDrop();
-            }
-        });
-
-        update();
-        drawNextBlock();
-    </script>
-</body>
-</html>
+            context.clearRect(0, 0
