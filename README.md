@@ -232,4 +232,165 @@
                     tetromino.y--;
                     mergeTetromino(tetromino);
                     clearRows();
-                    tetromino = nextTetromino
+                    tetromino = nextTetromino;
+                    if (isColliding(tetromino)) {
+                        gameOver();
+                        return;
+                    }
+                    nextTetromino = randomTetromino();
+                    drawNextBlock();
+                }
+                dropCounter = 0;
+            }
+
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        function draw() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            board.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        context.fillStyle = value;
+                        context.fillRect(x * grid, y * grid, grid - 1, grid - 1);
+                        context.strokeStyle = '#000';
+                        context.strokeRect(x * grid, y * grid, grid - 1, grid - 1);
+                    }
+                });
+            });
+
+            drawTetromino(tetromino, context);
+        }
+
+        function hardDrop() {
+            while (!isColliding(tetromino)) {
+                tetromino.y++;
+            }
+            tetromino.y--;
+            mergeTetromino(tetromino);
+            clearRows();
+            tetromino = nextTetromino;
+            if (isColliding(tetromino)) {
+                gameOver();
+                return;
+            }
+            nextTetromino = randomTetromino();
+            drawNextBlock();
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            alert('Game Over! Your score: ' + score);
+        }
+
+        function startGame() {
+            if (gameRunning) return;
+
+            board.forEach(row => row.fill(0));
+            score = 0;
+            scoreElement.textContent = 'Score: 0';
+            tetromino = randomTetromino();
+            nextTetromino = randomTetromino();
+            drawNextBlock();
+            gameRunning = true;
+            gamePaused = false;
+            pauseButton.textContent = 'Pause';
+            update();
+        }
+
+        function togglePause() {
+            if (!gameRunning) return;
+
+            gamePaused = !gamePaused;
+            if (gamePaused) {
+                pauseButton.textContent = 'Continue';
+            } else {
+                pauseButton.textContent = 'Pause';
+                update();
+            }
+        }
+
+        function drawTetromino(tetromino, context, offsetX = 0, offsetY = 0) {
+            tetromino.shape.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        context.fillStyle = tetromino.color;
+                        context.fillRect((tetromino.x + x) * grid + offsetX, (tetromino.y + y) * grid + offsetY, grid - 1, grid - 1);
+                        context.strokeStyle = '#000';
+                        context.strokeRect((tetromino.x + x) * grid + offsetX, (tetromino.y + y) * grid + offsetY, grid - 1, grid - 1);
+                    }
+                });
+            });
+        }
+
+        document.addEventListener('keydown', event => {
+            if (!gameRunning || gamePaused) return;
+
+            if (event.key === 'ArrowLeft') {
+                tetromino.x--;
+                if (isColliding(tetromino)) {
+                    tetromino.x++;
+                }
+            } else if (event.key === 'ArrowRight') {
+                tetromino.x++;
+                if (isColliding(tetromino)) {
+                    tetromino.x--;
+                }
+            } else if (event.key === 'ArrowDown') {
+                tetromino.y++;
+                if (isColliding(tetromino)) {
+                    tetromino.y--;
+                }
+            } else if (event.key === 'ArrowUp') {
+                tetromino = rotate(tetromino);
+            } else if (event.key === ' ') {
+                hardDrop();
+            } else if (event.key === 'p') {
+                togglePause();
+            }
+        });
+
+        playButton.addEventListener('click', startGame);
+        pauseButton.addEventListener('click', togglePause);
+
+        // Mobile controls
+        document.getElementById('leftButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            tetromino.x--;
+            if (isColliding(tetromino)) {
+                tetromino.x++;
+            }
+        });
+
+        document.getElementById('rightButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            tetromino.x++;
+            if (isColliding(tetromino)) {
+                tetromino.x--;
+            }
+        });
+
+        document.getElementById('rotateButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            tetromino = rotate(tetromino);
+        });
+
+        document.getElementById('downButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            tetromino.y++;
+            if (isColliding(tetromino)) {
+                tetromino.y--;
+            }
+        });
+
+        document.getElementById('dropButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            hardDrop();
+        });
+
+        draw();
+    </script>
+</body>
+</html>
