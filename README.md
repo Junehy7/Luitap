@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -85,8 +86,8 @@
         #pauseButtonMobile {
             width: 120px;
             height: 60px;
-            border-radius: 10px;
             font-size: 18px;
+            border-radius: 10px;
         }
         @media (max-width: 768px) {
             body {
