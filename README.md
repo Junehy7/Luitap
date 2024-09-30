@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+Cutie Cat Tetris
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -43,13 +43,18 @@
         #nextBlock {
             margin-top: 5px;
         }
-        #nameInput {
-            margin-bottom: 10px;
-        }
         #playButton, #pauseButton {
-            margin-bottom: 10px;
-            padding: 5px 10px;
-            font-size: 16px;
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #playButton:hover, #pauseButton:hover {
+            background-color: #45a049;
         }
         #mobileControls {
             display: none;
@@ -63,7 +68,12 @@
             padding: 15px;
             background-color: rgba(255, 255, 255, 0.7);
             border: none;
-            border-radius: 10px;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             touch-action: manipulation;
         }
         #controlsTop, #controlsBottom {
@@ -74,9 +84,6 @@
             margin-top: 10px;
         }
         @media (max-width: 768px) {
-            body {
-                background-color: #9ACD32;
-            }
             #gameArea {
                 flex-direction: column;
                 align-items: center;
@@ -94,10 +101,6 @@
 </head>
 <body>
     <div id="gameContainer">
-        <div id="nameInput">
-            <input type="text" id="playerName" placeholder="Enter your name">
-            <button id="playButton">Play</button>
-        </div>
         <div id="gameArea">
             <div>
                 <canvas id="tetris" width="240" height="400"></canvas>
@@ -108,11 +111,14 @@
                 <canvas id="nextBlock" width="140" height="140"></canvas>
             </div>
         </div>
+        <div id="controls">
+            <button id="playButton">Play</button>
+            <button id="pauseButton">II</button>
+        </div>
         <div id="mobileControls">
             <div id="controlsTop">
-                <button class="mobileButton" id="rotateButton">↻</button>
-                <button class="mobileButton" id="pauseButton">Pause</button>
                 <button class="mobileButton" id="dropButton">⤓</button>
+                <button class="mobileButton" id="rotateButton">↻</button>
             </div>
             <div id="controlsBottom">
                 <button class="mobileButton" id="leftButton">←</button>
@@ -130,7 +136,6 @@
         const scoreElement = document.getElementById('score');
         const playButton = document.getElementById('playButton');
         const pauseButton = document.getElementById('pauseButton');
-        const playerNameInput = document.getElementById('playerName');
 
         const grid = 20;
         let score = 0;
@@ -243,143 +248,4 @@
         }
 
         function draw() {
-            context.clearRect(0, 0, canvas.width, canvas.height);
-
-            board.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value) {
-                        context.fillStyle = value;
-                        context.fillRect(x * grid, y * grid, grid - 1, grid - 1);
-                        context.strokeStyle = '#000';
-                        context.strokeRect(x * grid, y * grid, grid - 1, grid - 1);
-                    }
-                });
-            });
-
-            drawTetromino(tetromino, context);
-        }
-
-        function drawNextBlock() {
-            nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-            const offsetX = (nextCanvas.width / grid - nextTetromino.shape[0].length) / 2;
-            const offsetY = (nextCanvas.height / grid - nextTetromino.shape.length) / 2;
-            drawTetromino(nextTetromino, nextContext, offsetX, offsetY);
-        }
-
-        function hardDrop() {
-            while (!isColliding(tetromino)) {
-                tetromino.y++;
-            }
-            tetromino.y--;
-            mergeTetromino(tetromino);
-            clearRows();
-            tetromino = nextTetromino;
-            if (isColliding(tetromino)) {
-                gameOver();
-                return;
-            }
-            nextTetromino = randomTetromino();
-            drawNextBlock();
-        }
-
-        function gameOver() {
-            gameRunning = false;
-            alert('Game Over! Your score: ' + score);
-        }
-
-        function startGame() {
-            if (gameRunning) return;
-
-            board.forEach(row => row.fill(0));
-            score = 0;
-            scoreElement.textContent = 'Score: 0';
-            tetromino = randomTetromino();
-            nextTetromino = randomTetromino();
-            drawNextBlock();
-            gameRunning = true;
-            gamePaused = false;
-            pauseButton.textContent = 'Pause';
-            update();
-        }
-
-        function togglePause() {
-            if (!gameRunning) return;
-
-            gamePaused = !gamePaused;
-            if (gamePaused) {
-                pauseButton.textContent = 'Continue';
-            } else {
-                pauseButton.textContent = 'Pause';
-                update();
-            }
-        }
-
-        document.addEventListener('keydown', event => {
-            if (!gameRunning || gamePaused) return;
-
-            if (event.key === 'ArrowLeft') {
-                tetromino.x--;
-                if (isColliding(tetromino)) {
-                    tetromino.x++;
-                }
-            } else if (event.key === 'ArrowRight') {
-                tetromino.x++;
-                if (isColliding(tetromino)) {
-                    tetromino.x--;
-                }
-            } else if (event.key === 'ArrowDown') {
-                tetromino.y++;
-                if (isColliding(tetromino)) {
-                    tetromino.y--;
-                }
-            } else if (event.key === 'ArrowUp') {
-                tetromino = rotate(tetromino);
-            } else if (event.key === ' ') {
-                hardDrop();
-            } else if (event.key === 'p') {
-                togglePause();
-            }
-        });
-
-        playButton.addEventListener('click', startGame);
-        pauseButton.addEventListener('click', togglePause);
-
-        // Mobile controls
-        document.getElementById('leftButton').addEventListener('click', () => {
-            if (!gameRunning || gamePaused) return;
-            tetromino.x--;
-            if (isColliding(tetromino)) {
-                tetromino.x++;
-            }
-        });
-
-        document.getElementById('rightButton').addEventListener('click', () => {
-            if (!gameRunning || gamePaused) return;
-            tetromino.x++;
-            if (isColliding(tetromino)) {
-                tetromino.x--;
-            }
-        });
-
-        document.getElementById('rotateButton').addEventListener('click', () => {
-            if (!gameRunning || gamePaused) return;
-            tetromino = rotate(tetromino);
-        });
-
-        document.getElementById('downButton').addEventListener('click', () => {
-            if (!gameRunning || gamePaused) return;
-            tetromino.y++;
-            if (isColliding(tetromino)) {
-                tetromino.y--;
-            }
-        });
-
-        document.getElementById('dropButton').addEventListener('click', () => {
-            if (!gameRunning || gamePaused) return;
-            hardDrop();
-        });
-
-        draw();
-    </script>
-</body>
-</html>
+            context.clearRect(0, 0, canvas
