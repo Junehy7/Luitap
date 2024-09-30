@@ -78,7 +78,7 @@
         }
         #controlsTop, #controlsBottom {
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
         }
         #controlsBottom {
             margin-top: 10px;
@@ -86,8 +86,8 @@
         #pauseButton {
             flex-grow: 1;
             width: auto;
-            padding: 10px 30px; /* Smaller padding */
-            font-size: 18px; /* Slightly smaller font */
+            padding: 10px 30px; /* Slightly smaller size for "Pause/Continue" */
+            font-size: 18px;
         }
         @media (max-width: 768px) {
             body {
