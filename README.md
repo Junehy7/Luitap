@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -82,6 +83,12 @@
         #controlsBottom {
             margin-top: 10px;
         }
+        #pauseButtonMobile {
+            width: 120px;
+            height: 60px;
+            border-radius: 10px;
+            font-size: 18px;
+        }
         @media (max-width: 768px) {
             body {
                 background-color: #9ACD32;
@@ -97,6 +104,9 @@
             #mobileControls {
                 display: flex;
                 flex-direction: column;
+            }
+            #controlsTop {
+                justify-content: space-around;
             }
         }
     </style>
@@ -117,8 +127,8 @@
         <div id="mobileControls">
             <div id="controlsTop">
                 <button class="mobileButton" id="dropButton">⤓</button>
-                <button class="mobileButton" id="pauseButton">II</button>
                 <button class="mobileButton" id="rotateButton">↻</button>
+                <button id="pauseButtonMobile" id="pauseButton">Pause</button>
             </div>
             <div id="controlsBottom">
                 <button class="mobileButton" id="leftButton">←</button>
@@ -136,6 +146,7 @@
         const scoreElement = document.getElementById('score');
         const playButton = document.getElementById('playButton');
         const pauseButton = document.getElementById('pauseButton');
+        const pauseButtonMobile = document.getElementById('pauseButtonMobile');
         const playerNameInput = document.getElementById('playerName');
 
         const grid = 20;
@@ -245,14 +256,14 @@
         }
 
         function draw() {
-            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.clearRect(0, 0, canvas .width, canvas.height);
 
             board.forEach((row, y) => {
                 row.forEach((value, x) => {
                     if (value) {
                         context.fillStyle = value;
                         context.fillRect(x * grid, y * grid, grid - 1, grid - 1);
-                        context.strokeStyle = '#000 ';
+                        context.strokeStyle = '#000';
                         context.strokeRect(x * grid, y * grid, grid - 1, grid - 1);
                     }
                 });
@@ -301,6 +312,7 @@
             gameRunning = true;
             gamePaused = false;
             pauseButton.textContent = 'Pause';
+            pauseButtonMobile.textContent = 'Pause';
             update();
         }
 
@@ -310,8 +322,10 @@
             gamePaused = !gamePaused;
             if (gamePaused) {
                 pauseButton.textContent = 'Continue';
+                pauseButtonMobile.textContent = 'Continue';
             } else {
                 pauseButton.textContent = 'Pause';
+                pauseButtonMobile.textContent = 'Pause';
                 update();
             }
         }
@@ -358,6 +372,7 @@
 
         playButton.addEventListener('click', startGame);
         pauseButton.addEventListener('click', togglePause);
+        pauseButtonMobile.addEventListener('click', togglePause);
 
         // Mobile controls
         document.getElementById('leftButton').addEventListener('click', () => {
@@ -395,4 +410,6 @@
         });
 
         draw();
-    </script
+    </script>
+</body>
+</html>
