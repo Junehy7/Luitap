@@ -23,6 +23,21 @@ Cute Tetris
             padding: 10px;
         }
         <button id="playButton">Play</button>
+        #playButton, #pauseButton {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+#playButton:hover, #pauseButton:hover {
+    background-color: #45a049;
+}
+        const playButton = document.getElementById('playButton');
+playButton.addEventListener('click', startGame);
         #gameArea {
             display: flex;
             justify-content: center;
