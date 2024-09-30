@@ -1,4 +1,4 @@
-Cutie Cat Tetris
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -84,6 +84,9 @@ Cutie Cat Tetris
             margin-top: 10px;
         }
         @media (max-width: 768px) {
+            body {
+                background-color: #9ACD32;
+            }
             #gameArea {
                 flex-direction: column;
                 align-items: center;
@@ -101,6 +104,7 @@ Cutie Cat Tetris
 </head>
 <body>
     <div id="gameContainer">
+        <button id="playButton">Play</button>
         <div id="gameArea">
             <div>
                 <canvas id="tetris" width="240" height="400"></canvas>
@@ -111,13 +115,10 @@ Cutie Cat Tetris
                 <canvas id="nextBlock" width="140" height="140"></canvas>
             </div>
         </div>
-        <div id="controls">
-            <button id="playButton">Play</button>
-            <button id="pauseButton">II</button>
-        </div>
         <div id="mobileControls">
             <div id="controlsTop">
                 <button class="mobileButton" id="dropButton">⤓</button>
+                <button class="mobileButton" id="pauseButton">II</button>
                 <button class="mobileButton" id="rotateButton">↻</button>
             </div>
             <div id="controlsBottom">
@@ -135,7 +136,9 @@ Cutie Cat Tetris
         const nextContext = nextCanvas.getContext('2d');
         const scoreElement = document.getElementById('score');
         const playButton = document.getElementById('playButton');
+        playButton.addEventListener('click', startGame);
         const pauseButton = document.getElementById('pauseButton');
+        const playerNameInput = document.getElementById('playerName');
 
         const grid = 20;
         let score = 0;
@@ -161,17 +164,13 @@ Cutie Cat Tetris
         let tetromino = randomTetromino();
         let nextTetromino = randomTetromino();
 
-        function drawTetromino(tetromino, context, offsetX = 0, offsetY = 0) {
-            context.fillStyle = tetromino.color;
-            tetromino.shape.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value) {
-                        context.fillRect((tetromino.x + x + offsetX) * grid, (tetromino.y + y + offsetY) * grid, grid - 1, grid - 1);
-                        context.strokeStyle = '#000';
-                        context.strokeRect((tetromino.x + x + offsetX) * grid, (tetromino.y + y + offsetY) * grid, grid - 1, grid - 1);
-                    }
-                });
-            });
+        function drawNextBlock() {
+            nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+            const blockWidth = nextTetromino.shape[0].length;
+            const blockHeight = nextTetromino.shape.length;
+            const offsetX = Math.floor((nextCanvas.width / grid - blockWidth) / 2) - 1;
+            const offsetY = Math.floor((nextCanvas.height / grid - blockHeight) / 2);
+            drawTetromino(nextTetromino, nextContext, offsetX, offsetY);
         }
 
         function isColliding(tetromino) {
@@ -248,4 +247,143 @@ Cutie Cat Tetris
         }
 
         function draw() {
-            context.clearRect(0, 0, canvas
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            board.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        context.fillStyle = value;
+                        context.fillRect(x * grid, y * grid, grid - 1, grid - 1);
+                        context.strokeStyle = '#000';
+                        context.strokeRect(x * grid, y * grid, grid - 1, grid - 1);
+                    }
+                });
+            });
+
+            drawTetromino(tetromino, context);
+        }
+
+        function drawNextBlock() {
+            nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+            const offsetX = (nextCanvas.width / grid - nextTetromino.shape[0].length) / 2;
+            const offsetY = (nextCanvas.height / grid - nextTetromino.shape.length) / 2;
+            drawTetromino(nextTetromino, nextContext, offsetX, offsetY);
+        }
+
+        function hardDrop() {
+            while (!isColliding(tetromino)) {
+                tetromino.y++;
+            }
+            tetromino.y--;
+            mergeTetromino(tetromino);
+            clearRows();
+            tetromino = nextTetromino;
+            if (isColliding(tetromino)) {
+                gameOver();
+                return;
+            }
+            nextTetromino = randomTetromino();
+            drawNextBlock();
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            alert('Game Over! Your score: ' + score);
+        }
+
+        function startGame() {
+            if (gameRunning) return;
+
+            board.forEach(row => row.fill(0));
+            score = 0;
+            scoreElement.textContent = 'Score: 0';
+            tetromino = randomTetromino();
+            nextTetromino = randomTetromino();
+            drawNextBlock();
+            gameRunning = true;
+            gamePaused = false;
+            pauseButton.textContent = 'Pause';
+            update();
+        }
+
+        function togglePause() {
+            if (!gameRunning) return;
+
+            gamePaused = !gamePaused;
+            if (gamePaused) {
+                pauseButton.textContent = 'Continue';
+            } else {
+                pauseButton.textContent = 'Pause';
+                update();
+            }
+        }
+
+        document.addEventListener('keydown', event => {
+            if (!gameRunning || gamePaused) return;
+
+            if (event.key === 'ArrowLeft') {
+                tetromino.x--;
+                if (isColliding(tetromino)) {
+                    tetromino.x++;
+                }
+            } else if (event.key === 'ArrowRight') {
+                tetromino.x++;
+                if (isColliding(tetromino)) {
+                    tetromino.x--;
+                }
+            } else if (event.key === 'ArrowDown') {
+                tetromino.y++;
+                if (isColliding(tetromino)) {
+                    tetromino.y--;
+                }
+            } else if (event.key === 'ArrowUp') {
+                tetromino = rotate(tetromino);
+            } else if (event.key === ' ') {
+                hardDrop();
+            } else if (event.key === 'p') {
+                togglePause();
+            }
+        });
+
+        playButton.addEventListener('click', startGame);
+        pauseButton.addEventListener('click', togglePause);
+
+        // Mobile controls
+        document.getElementById('leftButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            tetromino.x--;
+            if (isColliding(tetromino)) {
+                tetromino.x++;
+            }
+        });
+
+        document.getElementById('rightButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            tetromino.x++;
+            if (isColliding(tetromino)) {
+                tetromino.x--;
+            }
+        });
+
+        document.getElementById('rotateButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            tetromino = rotate(tetromino);
+        });
+
+        document.getElementById('downButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            tetromino.y++;
+            if (isColliding(tetromino)) {
+                tetromino.y--;
+            }
+        });
+
+        document.getElementById('dropButton').addEventListener('click', () => {
+            if (!gameRunning || gamePaused) return;
+            hardDrop();
+        });
+
+        draw();
+    </script>
+</body>
+</html>
