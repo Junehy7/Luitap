@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -211,4 +212,22 @@
                 dropCounter = 0;
             }
 
-            context.clearRect(0, 0
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            drawTetromino(tetromino, context);
+
+            board.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        context.fillStyle = 'gray';
+                        context.fillRect(x * grid, y * grid, grid, grid);
+                        context.strokeStyle = '#000';
+                        context.strokeRect(x * grid, y * grid, grid, grid);
+                    }
+                });
+            });
+
+            requestAnimationFrame(update);
+        }
+
+        function drawNextBlock() {
+           
