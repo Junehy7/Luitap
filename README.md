@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -13,13 +14,16 @@
             margin: 0;
             color: white;
         }
+        .game-container {
+            display: flex;
+        }
         canvas {
             background-color: #FFFFFF;
             display: block;
             border: 2px solid #fff;
+            margin-right: 20px; /* Move canvas left by adding margin to the right */
         }
         #info {
-            margin-left: 20px;
             font-family: Arial, sans-serif;
         }
         #score {
@@ -32,84 +36,56 @@
         #next canvas {
             margin-top: 10px;
         }
-        #player-input {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 20px;
+        #player-name {
+            font-size: 20px;
+            margin-bottom: 10px;
         }
-        #ranking {
-            font-size: 18px;
+        #scoreboard {
             margin-left: 20px;
+            font-size: 18px;
         }
-        #ranking table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 10px;
+        #scoreboard ul {
+            list-style-type: none;
+            padding: 0;
         }
-        #ranking table th, #ranking table td {
-            border: 1px solid white;
-            padding: 8px;
-            text-align: center;
+        #scoreboard li {
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
-    <div id="player-input">
-        <label for="playerName">Enter your name: </label>
-        <input type="text" id="playerName" placeholder="Your Name">
-        <button id="startGame">Start Game</button>
-    </div>
-    <div>
-        <canvas id="tetris" width="320" height="640"></canvas>
-    </div>
-    <div id="info">
-        <div id="score">Score: 0</div>
-        <div id="next">Next Block:</div>
-        <canvas id="nextBlock" width="160" height="128"></canvas>
-    </div>
-    <div id="ranking">
-        <div>Top 5 Players</div>
-        <table>
-            <thead>
-                <tr><th>Rank</th><th>Name</th><th>Score</th></tr>
-            </thead>
-            <tbody id="rankList">
-                <tr><td>1</td><td>-</td><td>0</td></tr>
-                <tr><td>2</td><td>-</td><td>0</td></tr>
-                <tr><td>3</td><td>-</td><td>0</td></tr>
-                <tr><td>4</td><td>-</td><td>0</td></tr>
-                <tr><td>5</td><td>-</td><td>0</td></tr>
-            </tbody>
-        </table>
+    <div class="game-container">
+        <div>
+            <input type="text" id="player-name" placeholder="Enter your name" />
+            <canvas id="tetris" width="320" height="640"></canvas>
+        </div>
+        <div id="info">
+            <div id="score">Score: 0</div>
+            <div id="next">Next Block:</div>
+            <canvas id="nextBlock" width="160" height="128"></canvas>
+        </div>
+        <div id="scoreboard">
+            <h3>Scoreboard</h3>
+            <ul id="topScores">
+                <li>No players yet</li>
+            </ul>
+        </div>
     </div>
 
     <script>
-        const playerInputDiv = document.getElementById('player-input');
-        const playerNameInput = document.getElementById('playerName');
-        const startGameBtn = document.getElementById('startGame');
-        let playerName = '';
-        let isPaused = false;
-        let gameOver = false;
-        let score = 0;
-
-        startGameBtn.addEventListener('click', () => {
-            playerName = playerNameInput.value.trim();
-            if (playerName) {
-                playerInputDiv.style.display = 'none'; // Hide name input
-                startGame();
-            } else {
-                alert("Please enter your name.");
-            }
-        });
-
         const canvas = document.getElementById('tetris');
         const context = canvas.getContext('2d');
         const nextCanvas = document.getElementById('nextBlock');
         const nextContext = nextCanvas.getContext('2d');
         const scoreElement = document.getElementById('score');
+        const playerNameInput = document.getElementById('player-name');
+        const topScoresElement = document.getElementById('topScores');
 
         const grid = 32;
+        let score = 0;
+        let isPaused = false;
+        let gameOver = false;
+        let playerName = '';
 
         const tetrominoes = [
             { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
@@ -201,10 +177,6 @@
                     tetromino.y--;
                     mergeTetromino(tetromino);
                     clearRows();
-                    if (tetromino.y === 0) {
-                        endGame();
-                        return;
-                    }
                     tetromino = nextTetromino;
                     nextTetromino = randomTetromino();
                     drawNextBlock();
@@ -213,7 +185,6 @@
             }
 
             context.clearRect(0, 0, canvas.width, canvas.height);
-
             drawTetromino(tetromino, context);
 
             board.forEach((row, y) => {
@@ -227,4 +198,38 @@
                 });
             });
 
-           
+            requestAnimationFrame(update);
+        }
+
+        function drawNextBlock() {
+            nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+            if (!gameOver) {
+                nextTetromino.x = 1; // Center the block in next block canvas
+                nextTetromino.y = 1;
+                drawTetromino(nextTetromino, nextContext);
+            }
+        }
+
+        function hardDrop() {
+            while (!isColliding(tetromino)) {
+                tetromino.y++;
+            }
+            tetromino.y--;
+            mergeTetromino(tetromino);
+            clearRows();
+            tetromino = nextTetromino;
+            nextTetromino = randomTetromino();
+            drawNextBlock();
+        }
+
+        function pauseGame() {
+            isPaused = !isPaused;
+        }
+
+        document.addEventListener('keydown', event => {
+            if (gameOver) return;
+
+            if (event.key === 'p') {
+                pauseGame();
+            } else if (event.key === 'ArrowLeft') {
+                tetromino
