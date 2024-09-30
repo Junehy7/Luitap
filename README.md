@@ -15,7 +15,7 @@
             color: white;
         }
         canvas {
-            background-color: #222;
+            background-color: #FFFFFF;
             display: block;
             border: 2px solid #fff;
         }
