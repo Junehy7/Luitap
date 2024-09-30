@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -13,43 +12,54 @@
             background-color: #9ACD32;
             margin: 0;
             color: white;
+            font-family: Arial, sans-serif; /* Set a default font for consistency */
         }
         .game-container {
             display: flex;
+            align-items: center; /* Center elements vertically */
         }
         canvas {
             background-color: #FFFFFF;
             display: block;
             border: 2px solid #fff;
-            margin-right: 20px; /* Move canvas left by adding margin to the right */
+            width: 240px; /* Resize canvas */
+            height: 480px; /* Resize canvas */
+            margin-right: 10px; /* Space between canvas and next block */
         }
         #info {
             font-family: Arial, sans-serif;
         }
         #score {
-            font-size: 24px;
-            margin-bottom: 10px;
+            font-size: 20px; /* Resize score font */
+            margin-bottom: 5px; /* Adjust margin */
         }
         #next {
-            font-size: 18px;
+            font-size: 16px; /* Resize next block font */
         }
         #next canvas {
-            margin-top: 10px;
+            margin-top: 5px; /* Adjust margin */
+            width: 120px; /* Resize next block canvas */
+            height: 96px; /* Resize next block canvas */
         }
         #player-name {
-            font-size: 20px;
-            margin-bottom: 10px;
+            font-size: 18px; /* Resize input font */
+            margin-bottom: 5px; /* Adjust margin */
+        }
+        #play-button {
+            font-size: 18px; /* Resize button font */
+            margin-bottom: 10px; /* Adjust margin */
+            padding: 5px 10px; /* Add padding to button */
         }
         #scoreboard {
-            margin-left: 20px;
-            font-size: 18px;
+            margin-left: 10px; /* Adjust scoreboard margin */
+            font-size: 16px; /* Resize scoreboard font */
         }
         #scoreboard ul {
             list-style-type: none;
             padding: 0;
         }
         #scoreboard li {
-            margin-bottom: 5px;
+            margin-bottom: 3px; /* Adjust margin */
         }
     </style>
 </head>
@@ -57,12 +67,13 @@
     <div class="game-container">
         <div>
             <input type="text" id="player-name" placeholder="Enter your name" />
-            <canvas id="tetris" width="320" height="640"></canvas>
+            <button id="play-button" disabled>Play</button> <!-- Play button -->
+            <canvas id="tetris" width="240" height="480"></canvas>
         </div>
         <div id="info">
             <div id="score">Score: 0</div>
             <div id="next">Next Block:</div>
-            <canvas id="nextBlock" width="160" height="128"></canvas>
+            <canvas id="nextBlock" width="120" height="96"></canvas>
         </div>
         <div id="scoreboard">
             <h3>Scoreboard</h3>
@@ -79,13 +90,15 @@
         const nextContext = nextCanvas.getContext('2d');
         const scoreElement = document.getElementById('score');
         const playerNameInput = document.getElementById('player-name');
+        const playButton = document.getElementById('play-button');
         const topScoresElement = document.getElementById('topScores');
 
-        const grid = 32;
+        const grid = 16; // Resize grid for smaller blocks
         let score = 0;
         let isPaused = false;
         let gameOver = false;
         let playerName = '';
+        let players = []; // Store player scores
 
         const tetrominoes = [
             { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
@@ -205,31 +218,4 @@
             nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
             if (!gameOver) {
                 nextTetromino.x = 1; // Center the block in next block canvas
-                nextTetromino.y = 1;
-                drawTetromino(nextTetromino, nextContext);
-            }
-        }
-
-        function hardDrop() {
-            while (!isColliding(tetromino)) {
-                tetromino.y++;
-            }
-            tetromino.y--;
-            mergeTetromino(tetromino);
-            clearRows();
-            tetromino = nextTetromino;
-            nextTetromino = randomTetromino();
-            drawNextBlock();
-        }
-
-        function pauseGame() {
-            isPaused = !isPaused;
-        }
-
-        document.addEventListener('keydown', event => {
-            if (gameOver) return;
-
-            if (event.key === 'p') {
-                pauseGame();
-            } else if (event.key === 'ArrowLeft') {
-                tetromino
+                nextTetromino
