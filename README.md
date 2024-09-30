@@ -1,4 +1,4 @@
-<Cute Tetris>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,76 +12,37 @@
             height: 100vh;
             background-color: #9ACD32;
             margin: 0;
-            color: black; /* Change text color to black */
-            font-family: Arial, sans-serif; /* Set a default font for consistency */
-        }
-        .game-container {
-            display: flex;
-            align-items: center; /* Center elements vertically */
+            color: white;
         }
         canvas {
             background-color: #FFFFFF;
             display: block;
             border: 2px solid #fff;
-            width: 240px; /* Resize canvas */
-            height: 480px; /* Resize canvas */
-            margin-right: 10px; /* Space between canvas and next block */
         }
         #info {
+            margin-left: 20px;
             font-family: Arial, sans-serif;
         }
         #score {
-            font-size: 20px; /* Resize score font */
-            margin-bottom: 5px; /* Adjust margin */
+            font-size: 24px;
+            margin-bottom: 10px;
         }
         #next {
-            font-size: 16px; /* Resize next block font */
+            font-size: 18px;
         }
         #next canvas {
-            margin-top: 5px; /* Adjust margin */
-            width: 120px; /* Resize next block canvas */
-            height: 96px; /* Resize next block canvas */
-        }
-        #player-name {
-            font-size: 18px; /* Resize input font */
-            margin-bottom: 5px; /* Adjust margin */
-        }
-        #play-button {
-            font-size: 18px; /* Resize button font */
-            margin-bottom: 10px; /* Adjust margin */
-            padding: 5px 10px; /* Add padding to button */
-        }
-        #scoreboard {
-            margin-left: 10px; /* Adjust scoreboard margin */
-            font-size: 14px; /* Make scoreboard font smaller */
-        }
-        #scoreboard ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        #scoreboard li {
-            margin-bottom: 3px; /* Adjust margin */
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <div>
-            <input type="text" id="player-name" placeholder="Enter your name" />
-            <button id="play-button" disabled>Play</button> <!-- Play button -->
-            <canvas id="tetris" width="240" height="480"></canvas>
-        </div>
-        <div id="info">
-            <div id="score">Score: 0</div>
-            <div id="next">Next Block:</div>
-            <canvas id="nextBlock" width="120" height="96"></canvas>
-        </div>
-        <div id="scoreboard">
-            <h3>Scoreboard</h3>
-            <ul id="topScores">
-                <li>No players yet</li>
-            </ul>
-        </div>
+    <div>
+        <canvas id="tetris" width="320" height="640"></canvas>
+    </div>
+    <div id="info">
+        <div id="score">Score: 0</div>
+        <div id="next">Next Block:</div>
+        <canvas id="nextBlock" width="160" height="128"></canvas>
     </div>
 
     <script>
@@ -90,16 +51,9 @@
         const nextCanvas = document.getElementById('nextBlock');
         const nextContext = nextCanvas.getContext('2d');
         const scoreElement = document.getElementById('score');
-        const playerNameInput = document.getElementById('player-name');
-        const playButton = document.getElementById('play-button');
-        const topScoresElement = document.getElementById('topScores');
 
-        const grid = 16; // Resize grid for smaller blocks
+        const grid = 32;
         let score = 0;
-        let isPaused = false;
-        let gameOver = false;
-        let playerName = '';
-        let players = []; // Store player scores
 
         const tetrominoes = [
             { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
@@ -179,8 +133,6 @@
         let lastTime = 0;
 
         function update(time = 0) {
-            if (isPaused || gameOver) return;
-
             const deltaTime = time - lastTime;
             lastTime = time;
             dropCounter += deltaTime;
@@ -199,6 +151,7 @@
             }
 
             context.clearRect(0, 0, canvas.width, canvas.height);
+
             drawTetromino(tetromino, context);
 
             board.forEach((row, y) => {
@@ -217,11 +170,9 @@
 
         function drawNextBlock() {
             nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-            if (!gameOver) {
-                nextTetromino.x = 1; // Center the block in next block canvas
-                nextTetromino.y = 1;
-                drawTetromino(nextTetromino, nextContext);
-            }
+            nextTetromino.x = 1; // Center the block in next block canvas
+            nextTetromino.y = 1;
+            drawTetromino(nextTetromino, nextContext);
         }
 
         function hardDrop() {
@@ -236,55 +187,8 @@
             drawNextBlock();
         }
 
-        function startGame() {
-            playerName = playerNameInput.value.trim();
-            if (playerName) {
-                players.push({ name: playerName, score: 0 });
-                updateScoreboard();
-                playButton.disabled = true; // Disable the play button after starting
-                resetGame();
-                update();
-            } else {
-                alert("Please enter a name.");
-            }
-        }
-
-        function resetGame() {
-            score = 0;
-            scoreElement.textContent = 'Score: ' + score;
-            board.forEach((row, y) => {
-                row.fill(0);
-            });
-            tetromino = randomTetromino();
-            nextTetromino = randomTetromino();
-            gameOver = false;
-            drawNextBlock();
-        }
-
-        function updateScoreboard() {
-            topScoresElement.innerHTML = ''; // Clear the scoreboard
-            players.forEach(player => {
-                const li = document.createElement('li');
-                li.textContent = `${player.name}: ${player.score}`;
-                topScoresElement.appendChild(li);
-            });
-        }
-
-        playerNameInput.addEventListener('input', () => {
-            playButton.disabled = playerNameInput.value.trim() === ''; // Enable button if there's input
-        });
-
-        playButton.addEventListener('click', startGame); // Start game on button click
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'ArrowUp') {
-                tetromino = rotate(tetromino);
-            } else if (event.key === 'ArrowDown') {
-                tetromino.y++;
-                if (isColliding(tetromino)) {
-                    tetromino.y--;
-                }
-            } else if (event.key === 'ArrowLeft') {
+        document.addEventListener('keydown', event => {
+            if (event.key === 'ArrowLeft') {
                 tetromino.x--;
                 if (isColliding(tetromino)) {
                     tetromino.x++;
@@ -294,10 +198,20 @@
                 if (isColliding(tetromino)) {
                     tetromino.x--;
                 }
+            } else if (event.key === 'ArrowDown') {
+                tetromino.y++;
+                if (isColliding(tetromino)) {
+                    tetromino.y--;
+                }
+            } else if (event.key === 'ArrowUp') {
+                tetromino = rotate(tetromino);
             } else if (event.key === ' ') {
                 hardDrop();
             }
         });
+
+        update();
+        drawNextBlock();
     </script>
 </body>
 </html>
