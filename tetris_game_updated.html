@@ -164,8 +164,6 @@ canvas {
                     }
                 });
             });
-
-            animationFrameId = requestAnimationFrame(update);
         }
     }
 
@@ -189,11 +187,12 @@ canvas {
     }
 
     function gameLoop() {
+        // Schedule the next frame regardless of pause state
+        animationFrameId = requestAnimationFrame(gameLoop);
+
+        // Update only if not paused
         if (!isPaused) {
             update();
-        } else {
-            // If paused, schedule the next frame
-            animationFrameId = requestAnimationFrame(gameLoop);
         }
     }
 
