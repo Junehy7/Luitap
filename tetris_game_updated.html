@@ -1,5 +1,3 @@
-
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -55,6 +53,7 @@
 
         const grid = 32;
         let score = 0;
+        let paused = false; // Add paused variable
 
         const tetrominoes = [
             { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
@@ -136,19 +135,22 @@
         function update(time = 0) {
             const deltaTime = time - lastTime;
             lastTime = time;
-            dropCounter += deltaTime;
 
-            if (dropCounter > dropInterval) {
-                tetromino.y++;
-                if (isColliding(tetromino)) {
-                    tetromino.y--;
-                    mergeTetromino(tetromino);
-                    clearRows();
-                    tetromino = nextTetromino;
-                    nextTetromino = randomTetromino();
-                    drawNextBlock();
+            if (!paused) { // Only update if not paused
+                dropCounter += deltaTime;
+
+                if (dropCounter > dropInterval) {
+                    tetromino.y++;
+                    if (isColliding(tetromino)) {
+                        tetromino.y--;
+                        mergeTetromino(tetromino);
+                        clearRows();
+                        tetromino = nextTetromino;
+                        nextTetromino = randomTetromino();
+                        drawNextBlock();
+                    }
+                    dropCounter = 0;
                 }
-                dropCounter = 0;
             }
 
             context.clearRect(0, 0, canvas.width, canvas.height);
@@ -189,25 +191,29 @@
         }
 
         document.addEventListener('keydown', event => {
-            if (event.key === 'ArrowLeft') {
-                tetromino.x--;
-                if (isColliding(tetromino)) {
-                    tetromino.x++;
-                }
-            } else if (event.key === 'ArrowRight') {
-                tetromino.x++;
-                if (isColliding(tetromino)) {
+            if (!paused) { // Only handle keys if not paused
+                if (event.key === 'ArrowLeft') {
                     tetromino.x--;
+                    if (isColliding(tetromino)) {
+                        tetromino.x++;
+                    }
+                } else if (event.key === 'ArrowRight') {
+                    tetromino.x++;
+                    if (isColliding(tetromino)) {
+                        tetromino.x--;
+                    }
+                } else if (event.key === 'ArrowDown') {
+                    tetromino.y++;
+                    if (isColliding(tetromino)) {
+                        tetromino.y--;
+                    }
+                } else if (event.key === 'ArrowUp') {
+                    tetromino = rotate(tetromino);
+                } else if (event.key === ' ') {
+                    hardDrop();
+                } else if (event.key === 'p') { // Pause/Resume on 'p'
+                    paused = !paused;
                 }
-            } else if (event.key === 'ArrowDown') {
-                tetromino.y++;
-                if (isColliding(tetromino)) {
-                    tetromino.y--;
-                }
-            } else if (event.key === 'ArrowUp') {
-                tetromino = rotate(tetromino);
-            } else if (event.key === ' ') {
-                hardDrop();
             }
         });
 
