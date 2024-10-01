@@ -53,6 +53,7 @@ canvas {
     const grid = 32;
     let score = 0;
     let isPaused = false;
+    let animationFrameId = null; // Store the animation frame ID
 
     const tetrominoes = [
         { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
@@ -132,40 +133,41 @@ canvas {
     let lastTime = 0;
 
     function update(time = 0) {
-        if (!isPaused) {
-            const deltaTime = time - lastTime;
-            lastTime = time;
-            dropCounter += deltaTime;
+        const deltaTime = time - lastTime;
+        lastTime = time;
+        dropCounter += deltaTime;
 
-            if (dropCounter > dropInterval) {
-                tetromino.y++;
-                if (isColliding(tetromino)) {
-                    tetromino.y--;
-                    mergeTetromino(tetromino);
-                    clearRows();
-                    tetromino = nextTetromino;
-                    nextTetromino = randomTetromino();
-                    drawNextBlock();
-                }
-                dropCounter = 0;
+        if (dropCounter > dropInterval) {
+            tetromino.y++;
+            if (isColliding(tetromino)) {
+                tetromino.y--;
+                mergeTetromino(tetromino);
+                clearRows();
+                tetromino = nextTetromino;
+                nextTetromino = randomTetromino();
+                drawNextBlock();
             }
-
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            drawTetromino(tetromino, context);
-
-            board.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value) {
-                        context.fillStyle = 'gray';
-                        context.fillRect(x * grid, y * grid, grid, grid);
-                        context.strokeStyle = '#000';
-                        context.strokeRect(x * grid, y * grid, grid, grid);
-                    }
-                });
-            });
+            dropCounter = 0;
         }
 
-        requestAnimationFrame(update);
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        drawTetromino(tetromino, context);
+
+        board.forEach((row, y) => {
+            row.forEach((value, x) => {
+                if (value) {
+                    context.fillStyle = 'gray';
+                    context.fillRect(x * grid, y * grid, grid, grid);
+                    context.strokeStyle = '#000';
+                    context.strokeRect(x * grid, y * grid, grid, grid);
+                }
+            });
+        });
+
+        // Call requestAnimationFrame only if not paused
+        if (!isPaused) {
+            animationFrameId = requestAnimationFrame(update);
+        }
     }
 
     function drawNextBlock() {
@@ -191,7 +193,11 @@ canvas {
         if (event.key === 'p') {
             isPaused = !isPaused;
             if (!isPaused) {
-                update(); // Resume the game when 'p' is pressed again
+                // Resume the game loop
+                animationFrameId = requestAnimationFrame(update);
+            } else {
+                // Cancel the current animation frame
+                cancelAnimationFrame(animationFrameId);
             }
         } else if (!isPaused) {
             if (event.key === 'ArrowLeft') {
