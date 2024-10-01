@@ -188,14 +188,18 @@ canvas {
         drawNextBlock();
     }
 
+    function gameLoop() {
+        if (!isPaused) {
+            update();
+        } else {
+            // If paused, schedule the next frame
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+    }
+
     document.addEventListener('keydown', event => {
         if (event.key === 'p') {
             isPaused = !isPaused; // Toggle pause state
-            if (isPaused) {
-                cancelAnimationFrame(animationFrameId); // Pause the game
-            } else {
-                update(); // Resume the game
-            }
         } else if (!isPaused) {
             if (event.key === 'ArrowLeft') {
                 tetromino.x--;
@@ -225,7 +229,7 @@ canvas {
         }
     });
 
-    update();
+    gameLoop(); // Start the game loop
     drawNextBlock();
 </script>
 
