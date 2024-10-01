@@ -9,6 +9,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    overflow: hidden; /* Prevent scrolling */
     background-color: #000;
     margin: 0;
     color: white;
@@ -54,6 +55,7 @@ canvas {
     const grid = 32;
     let score = 0;
     let isPaused = false;
+    let gamePaused = false; // New flag to track game paused state
 
     const tetrominoes = [
         { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
@@ -190,27 +192,35 @@ canvas {
     }
 
     document.addEventListener('keydown', event => {
-        if (event.key === 'ArrowLeft') {
-            tetromino.x--;
-            if (isColliding(tetromino)) {
-                tetromino.x++;
-            }
-        } else if (event.key === 'ArrowRight') {
-            tetromino.x++;
-            if (isColliding(tetromino)) {
+        if (!isPaused) {
+            if (event.key === 'ArrowLeft') {
                 tetromino.x--;
+                if (isColliding(tetromino)) {
+                    tetromino.x++;
+                }
+            } else if (event.key === 'ArrowRight') {
+                tetromino.x++;
+                if (isColliding(tetromino)) {
+                    tetromino.x--;
+                }
+            } else if (event.key === 'ArrowDown') {
+                tetromino.y++;
+                if (isColliding(tetromino)) {
+                    tetromino.y--;
+                }
+            } else if (event.key === 'ArrowUp') {
+                tetromino = rotate(tetromino);
+            } else if (event.key === ' ') {
+                hardDrop();
             }
-        } else if (event.key === 'ArrowDown') {
-            tetromino.y++;
-            if (isColliding(tetromino)) {
-                tetromino.y--;
-            }
-        } else if (event.key === 'ArrowUp') {
-            tetromino = rotate(tetromino);
-        } else if (event.key === ' ') {
-            hardDrop();
-        } else if (event.key === 'p') {
+        }
+
+        // Toggle pause with the 'P' key
+        if (event.key === 'p') {
             isPaused = !isPaused;
+            if (!isPaused) {
+                update(); // Resume the game by restarting the loop
+            }
         }
 
         // Prevent default scrolling for up and down keys
