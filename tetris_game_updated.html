@@ -37,9 +37,7 @@ canvas {
 </head>
 <body>
 <div>
-    <canvas id="tetris" width="320" height="640"></canvas>
-</div>
-<div id="info">
+    <canvas id="tetris" width="320" height="480"></canvas> </div> <div id="info">
     <div id="score">Score: 0</div>
     <div id="next">Next Block:</div>
     <canvas id="nextBlock" width="128" height="128"></canvas>
@@ -55,7 +53,6 @@ canvas {
     const grid = 32;
     let score = 0;
     let isPaused = false;
-    let gamePaused = false; // New flag to track game paused state
 
     const tetrominoes = [
         { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
@@ -72,7 +69,7 @@ canvas {
         return { ...tetrominoes[rand], x: 3, y: 0 };
     }
 
-    const board = Array.from({ length: 20 }, () => Array(10).fill(0));
+    const board = Array.from({ length: 15 }, () => Array(10).fill(0)); // Reduced the height of the board
     let tetromino = randomTetromino();
     let nextTetromino = randomTetromino();
 
@@ -94,7 +91,7 @@ canvas {
             return row.some((value, dx) => {
                 let newX = tetromino.x + dx;
                 let newY = tetromino.y + dy;
-                return value && (newX < 0 || newX >= 10 || newY >= 20 || board[newY] && board[newY][newX]);
+                return value && (newX < 0 || newX >= 10 || newY >= 15 || board[newY] && board[newY][newX]);
             });
         });
     }
@@ -154,7 +151,6 @@ canvas {
             }
 
             context.clearRect(0, 0, canvas.width, canvas.height);
-
             drawTetromino(tetromino, context);
 
             board.forEach((row, y) => {
@@ -192,7 +188,12 @@ canvas {
     }
 
     document.addEventListener('keydown', event => {
-        if (!isPaused) {
+        if (event.key === 'p') {
+            isPaused = !isPaused;
+            if (!isPaused) {
+                update(); // Resume the game when 'p' is pressed again
+            }
+        } else if (!isPaused) {
             if (event.key === 'ArrowLeft') {
                 tetromino.x--;
                 if (isColliding(tetromino)) {
@@ -212,14 +213,6 @@ canvas {
                 tetromino = rotate(tetromino);
             } else if (event.key === ' ') {
                 hardDrop();
-            }
-        }
-
-        // Toggle pause with the 'P' key
-        if (event.key === 'p') {
-            isPaused = !isPaused;
-            if (!isPaused) {
-                update(); // Resume the game by restarting the loop
             }
         }
 
