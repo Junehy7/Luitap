@@ -53,7 +53,7 @@ canvas {
     const grid = 32;
     let score = 0;
     let isPaused = false;
-    let animationFrameId = null;
+    let animationLoopRunning = false; // Flag to track if the animation loop is running
 
     const tetrominoes = [
         { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
@@ -187,18 +187,28 @@ canvas {
     }
 
     function gameLoop() {
-        // Schedule the next frame regardless of pause state
-        animationFrameId = requestAnimationFrame(gameLoop);
+        if (!animationLoopRunning) {
+            return; // If the loop is already running, do nothing
+        }
 
         // Update only if not paused
         if (!isPaused) {
             update();
         }
+
+        // Schedule the next frame
+        animationFrameId = requestAnimationFrame(gameLoop);
     }
 
     document.addEventListener('keydown', event => {
         if (event.key === 'p') {
             isPaused = !isPaused; // Toggle pause state
+            if (isPaused) {
+                animationLoopRunning = false; // Stop the loop when paused
+            } else {
+                animationLoopRunning = true; // Restart the loop when unpaused
+                gameLoop(); // Call the loop to start updating
+            }
         } else if (!isPaused) {
             if (event.key === 'ArrowLeft') {
                 tetromino.x--;
@@ -228,7 +238,9 @@ canvas {
         }
     });
 
-    gameLoop(); // Start the game loop
+    // Start the game loop
+    animationLoopRunning = true;
+    gameLoop();
     drawNextBlock();
 </script>
 
