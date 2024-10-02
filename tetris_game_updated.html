@@ -54,6 +54,7 @@ margin-top: 10px;
     const grid = 32;
     let score = 0;
     let paused = false;
+    let lastAnimationFrameId;
 
     const tetrominoes = [
         { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
@@ -116,68 +117,112 @@ margin-top: 10px;
                 rowsCleared++;
             }
         }
-        if (rowsCleared > 0) {
+        if ( rowsCleared > 0) {
             score += rowsCleared * 100;
-            scoreElement.textContent = `Score: ${score}`;
+            scoreElement.textContent = 'Score: ' + score;
         }
     }
 
-    function update() {
-        if (!paused) {
-            if (isColliding({ ...tetromino, y: tetromino.y + 1 })) {
+    function rotate(tetromino) {
+        const rotatedShape = tetromino.shape[0].map((_, i) => tetromino.shape.map(row => row[i])).reverse();
+        const newTetromino = { ...tetromino, shape: rotatedShape };
+        return isColliding(newTetromino) ? tetromino : newTetromino;
+    }
+
+    let dropCounter = 0;
+    let dropInterval = 1000;
+    let lastTime = 0;
+
+    function update(time = 0) {
+        if (paused) return;
+        const deltaTime = time - lastTime;
+        lastTime = time;
+        dropCounter += deltaTime;
+
+        if (dropCounter > dropInterval) {
+            tetromino.y++;
+            if (isColliding(tetromino)) {
+                tetromino.y--;
                 mergeTetromino(tetromino);
                 clearRows();
                 tetromino = nextTetromino;
                 nextTetromino = randomTetromino();
-            } else {
-                tetromino.y++;
+                drawNextBlock();
             }
+            dropCounter = 0;
         }
+
         context.clearRect(0, 0, canvas.width, canvas.height);
+
         drawTetromino(tetromino, context);
+
         board.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value) {
-                    context.fillStyle = 'white';
+                    context.fillStyle = 'gray';
                     context.fillRect(x * grid, y * grid, grid, grid);
                     context.strokeStyle = '#000';
                     context.strokeRect(x * grid, y * grid, grid, grid);
                 }
             });
         });
+
+        lastAnimationFrameId = requestAnimationFrame(update);
+    }
+
+    function drawNextBlock() {
         nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+        nextTetromino.x = 1; // Center the block in next block canvas
+        nextTetromino.y = 1;
         drawTetromino(nextTetromino, nextContext);
-        requestAnimationFrame(update);
+    }
+
+    function hardDrop() {
+        while (!isColliding(tetromino)) {
+            tetromino.y++;
+        }
+        tetromino.y--;
+        mergeTetromino(tetromino);
+        clearRows();
+        tetromino = nextTetromino;
+        nextTetromino = randomTetromino();
+        drawNextBlock();
     }
 
     document.addEventListener('keydown', event => {
         if (event.key === 'ArrowLeft') {
-            if (!isColliding({ ...tetromino, x: tetromino.x - 1 })) {
-                tetromino.x--;
-            }
-        } else if (event.key === 'ArrowRight') {
-            if (!isColliding({ ...tetromino, x: tetromino.x + 1 })) {
+            tetromino.x--;
+            if (isColliding(tetromino)) {
                 tetromino.x++;
             }
-        } else if (event.key === 'ArrowDown') {
-            if (!isColliding({ ...tetromino, y: tetromino.y + 1 })) {
-                tetromino.y++;
+        } else if (event.key === 'ArrowRight') {
+            tetromino.x++;
+            if (isColliding(tetromino)) {
+                tetromino.x--;
             }
         } else if (event.key === 'ArrowUp') {
-            const newTetromino = { ...tetromino, shape: tetromino.shape[0].map((_, index) => tetromino.shape.map(row => row[index])).reverse() };
-            if (!isColliding(newTetromino)) {
-                tetromino.shape = newTetromino.shape;
+            event.preventDefault();
+            tetromino = rotate(tetromino);
+        } else if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            tetromino.y++;
+            if (isColliding(tetromino)) {
+                tetromino.y--;
             }
+        } else if (event.key === ' ') {
+            hardDrop();
         } else if (event.key === 'p') {
-            paused = true;
-            cancelAnimationFrame(update);
-        } else if (event.key === 'r') {
-            paused = false;
-            update();
+            paused = !paused;
+            if (paused) {
+                cancelAnimationFrame(lastAnimationFrameId);
+            } else {
+                lastAnimationFrameId = requestAnimationFrame(update);
+            }
         }
     });
 
     update();
+    drawNextBlock();
 </script>
 </body>
 </html>
