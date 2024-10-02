@@ -32,18 +32,6 @@ font-size: 18px;
 #next canvas {
 margin-top: 10px;
 }
-button {
-  background-color: #4CAF50;
-  border: none;
-  color: white;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-}
 </style>
 </head>
 <body>
@@ -54,7 +42,6 @@ button {
 <div id="score">Score: 0</div>
 <div id="next">Next Block:</div>
 <canvas id="nextBlock" width="128" height="128"></canvas>
-<button id="startButton">Start</button>
 </div>
 
 <script>
@@ -63,11 +50,10 @@ button {
     const nextCanvas = document.getElementById('nextBlock');
     const nextContext = nextCanvas.getContext('2d');
     const scoreElement = document.getElementById('score');
-    const startButton = document.getElementById('startButton');
 
     const grid = 32;
     let score = 0;
-    let paused = true; // Start paused
+    let paused = false;
 
     const tetrominoes = [
         { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
@@ -224,23 +210,17 @@ button {
             }
         } else if (event.key === ' ') {
             hardDrop();
-        } 
-    });
-
-    startButton.addEventListener('click', () => {
-        if (score === 0) {
-            paused = false;
-            update();
-            startButton.disabled = true;
-        } else { // Resuming from a paused state
+        } else if (event.key === 'p') { // Correct key for pause/resume
             paused = !paused;
-            if (!paused) {
-                update();
+            if (paused) {
+                cancelAnimationFrame(update); // Cancel the animation frame when paused
+            } else {
+                update(); // Restart the animation frame when resuming
             }
-            startButton.textContent = paused ? 'Continue' : 'Pause';
         }
     });
 
+    update();
     drawNextBlock();
 </script>
 </body>
