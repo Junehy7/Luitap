@@ -132,10 +132,14 @@ margin-top: 10px;
     let dropInterval = 1000;
     let lastTime = 0;
 
-    function update(time = 0) {
-        if (paused) return;
-        const deltaTime = time - lastTime;
-        lastTime = time;
+function update(time = 0) {
+    if (paused) {
+        requestAnimationFrame(update);
+        return;
+    }
+
+    const deltaTime = time - lastTime;
+    lastTime = time;
         dropCounter += deltaTime;
 
         if (dropCounter > dropInterval) {
