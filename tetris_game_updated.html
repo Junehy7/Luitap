@@ -87,7 +87,6 @@ button {
     const board = Array.from({ length: 20 }, () => Array(10).fill(0));
     let tetromino = randomTetromino();
     let nextTetromino = randomTetromino();
-    let animationFrame = null; // To store the animation frame ID
 
     function drawTetromino(tetromino, context) {
         context.fillStyle = tetromino.color;
@@ -181,7 +180,7 @@ button {
             });
         });
 
-        animationFrame = requestAnimationFrame(update); // Store the animation frame ID
+        requestAnimationFrame(update);
     }
 
     function drawNextBlock() {
@@ -234,9 +233,11 @@ button {
             update();
             startButton.disabled = true;
         } else { // Resuming from a paused state
-            paused = false;
-            update();
-            startButton.textContent = 'Pause';
+            paused = !paused;
+            if (!paused) {
+                update();
+            }
+            startButton.textContent = paused ? 'Continue' : 'Pause';
         }
     });
 
