@@ -54,7 +54,6 @@ margin-top: 10px;
     const grid = 32;
     let score = 0;
     let paused = false;
-    let lastAnimationFrameId;
 
     const tetrominoes = [
         { shape: [[1, 1, 1, 1]], color: 'cyan' }, // I
@@ -112,12 +111,12 @@ margin-top: 10px;
         let rowsCleared = 0;
         for (let y = board.length - 1; y >= 0; --y) {
             if (board[y].every(value => value > 0)) {
-                board.splice(y, 1);
+                board.splice (y, 1);
                 board.unshift(Array(10).fill(0));
                 rowsCleared++;
             }
         }
-        if ( rowsCleared > 0) {
+        if (rowsCleared > 0) {
             score += rowsCleared * 100;
             scoreElement.textContent = 'Score: ' + score;
         }
@@ -167,7 +166,7 @@ margin-top: 10px;
             });
         });
 
-        lastAnimationFrameId = requestAnimationFrame(update);
+        requestAnimationFrame(update);
     }
 
     function drawNextBlock() {
@@ -213,11 +212,6 @@ margin-top: 10px;
             hardDrop();
         } else if (event.key === 'p') {
             paused = !paused;
-            if (paused) {
-                cancelAnimationFrame(lastAnimationFrameId);
-            } else {
-                lastAnimationFrameId = requestAnimationFrame(update);
-            }
         }
     });
 
