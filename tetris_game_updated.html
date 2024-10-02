@@ -210,13 +210,12 @@ margin-top: 10px;
             }
         } else if (event.key === ' ') {
             hardDrop();
-        } else if (event.key === 'p') { // Correct key for pause/resume
-            paused = !paused;
-            if (paused) {
-                cancelAnimationFrame(update); // Cancel the animation frame when paused
-            } else {
-                update(); // Restart the animation frame when resuming
-            }
+        } else if (event.key === 'p') { // Pause key
+            paused = true;
+            cancelAnimationFrame(update); 
+        } else if (event.key === 'r') { // Resume key
+            paused = false;
+            update(); 
         }
     });
 
