@@ -116,112 +116,68 @@ margin-top: 10px;
                 rowsCleared++;
             }
         }
-        if ( rowsCleared > 0) {
+        if (rowsCleared > 0) {
             score += rowsCleared * 100;
-            scoreElement.textContent = 'Score: ' + score;
+            scoreElement.textContent = `Score: ${score}`;
         }
     }
 
-    function rotate(tetromino) {
-        const rotatedShape = tetromino.shape[0].map((_, i) => tetromino.shape.map(row => row[i])).reverse();
-        const newTetromino = { ...tetromino, shape: rotatedShape };
-        return isColliding(newTetromino) ? tetromino : newTetromino;
-    }
-
-    let dropCounter = 0;
-    let dropInterval = 1000;
-    let lastTime = 0;
-
-    function update(time = 0) {
-        if (paused) return;
-        const deltaTime = time - lastTime;
-        lastTime = time;
-        dropCounter += deltaTime;
-
-        if (dropCounter > dropInterval) {
-            tetromino.y++;
-            if (isColliding(tetromino)) {
-                tetromino.y--;
+    function update() {
+        if (!paused) {
+            if (isColliding({ ...tetromino, y: tetromino.y + 1 })) {
                 mergeTetromino(tetromino);
                 clearRows();
                 tetromino = nextTetromino;
                 nextTetromino = randomTetromino();
-                drawNextBlock();
+            } else {
+                tetromino.y++;
             }
-            dropCounter = 0;
         }
-
         context.clearRect(0, 0, canvas.width, canvas.height);
-
         drawTetromino(tetromino, context);
-
         board.forEach((row, y) => {
             row.forEach((value, x) => {
                 if (value) {
-                    context.fillStyle = 'gray';
+                    context.fillStyle = 'white';
                     context.fillRect(x * grid, y * grid, grid, grid);
                     context.strokeStyle = '#000';
                     context.strokeRect(x * grid, y * grid, grid, grid);
                 }
             });
         });
-
-        requestAnimationFrame(update);
-    }
-
-    function drawNextBlock() {
         nextContext.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
-        nextTetromino.x = 1; // Center the block in next block canvas
-        nextTetromino.y = 1;
         drawTetromino(nextTetromino, nextContext);
-    }
-
-    function hardDrop() {
-        while (!isColliding(tetromino)) {
-            tetromino.y++;
-        }
-        tetromino.y--;
-        mergeTetromino(tetromino);
-        clearRows();
-        tetromino = nextTetromino;
-        nextTetromino = randomTetromino();
-        drawNextBlock();
+        requestAnimationFrame(update);
     }
 
     document.addEventListener('keydown', event => {
         if (event.key === 'ArrowLeft') {
-            tetromino.x--;
-            if (isColliding(tetromino)) {
-                tetromino.x++;
-            }
-        } else if (event.key === 'ArrowRight') {
-            tetromino.x++;
-            if (isColliding(tetromino)) {
+            if (!isColliding({ ...tetromino, x: tetromino.x - 1 })) {
                 tetromino.x--;
             }
-        } else if (event.key === 'ArrowUp') {
-            event.preventDefault();
-            tetromino = rotate(tetromino);
+        } else if (event.key === 'ArrowRight') {
+            if (!isColliding({ ...tetromino, x: tetromino.x + 1 })) {
+                tetromino.x++;
+            }
         } else if (event.key === 'ArrowDown') {
-            event.preventDefault();
-            tetromino.y++;
-            if (isColliding(tetromino)) {
-                tetromino.y--;
+            if (!isColliding({ ...tetromino, y: tetromino.y + 1 })) {
+                tetromino.y++;
             }
-        } else if (event.key === ' ') {
-            hardDrop();
+        } else if (event.key === 'ArrowUp') {
+            const newTetromino = { ...tetromino, shape: tetromino.shape[0].map((_, index) => tetromino.shape.map(row => row[index])).reverse() };
+            if (!isColliding(newTetromino)) {
+                tetromino.shape = newTetromino.shape;
+            }
+        } else if (event.key === 'p') {
+            paused = true;
+            cancelAnimationFrame(update);
         } else if (event.key === 'r') {
-            paused = !paused;
-            if (paused) {
-                cancelAnimationFrame(update);
-            } else {
-                update();
-            }
+            paused = false;
+            update();
         }
     });
 
     update();
-    drawNextBlock();
 </script>
 </body>
 </html>
