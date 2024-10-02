@@ -116,7 +116,7 @@ margin-top: 10px;
                 rowsCleared++;
             }
         }
-        if (rowsCleared > 0) {
+        if ( rowsCleared > 0) {
             score += rowsCleared * 100;
             scoreElement.textContent = 'Score: ' + score;
         }
@@ -210,12 +210,13 @@ margin-top: 10px;
             }
         } else if (event.key === ' ') {
             hardDrop();
-        } else if (event.key === 'p') { // Pause key
-            paused = true;
-            cancelAnimationFrame(update); 
-        } else if (event.key === 'r') { // Resume key
-            paused = false;
-            update(); 
+        } else if (event.key === 'r') {
+            paused = !paused;
+            if (paused) {
+                cancelAnimationFrame(update);
+            } else {
+                update();
+            }
         }
     });
 
