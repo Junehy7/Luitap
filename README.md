@@ -118,7 +118,7 @@
       messageDisplay.textContent = message;
     }
 
-    // Initialize grid with updated 2-5-2 layout
+    // Initialize grid with 2-5-2 layout for the middle three horizontal lanes
     for (let i = 0; i < 99; i++) {
       const row = Math.floor(i / 9);
       const col = i % 9;
@@ -126,16 +126,18 @@
       const tile = document.createElement("div");
       tile.className = "tile";
 
-      // Leftmost, middle, and rightmost lanes
-      if (col < 2) {
-        // Leftmost 2 lanes: zigzag with blues
-        tile.className += (row + col) % 2 === 0 ? " skyblue" : " blue";
-      } else if (col >= 2 && col < 7) {
-        // Middle 5 lanes: zigzag with greens
-        tile.className += (row + col) % 2 === 0 ? " green" : " darkgreen";
+      if (row >= 4 && row <= 6) {
+        // Middle 3 lanes
+        if (row === 4 || row === 6) {
+          // Top and bottom of the 3 middle rows: Zigzag blues
+          tile.className += (row + col) % 2 === 0 ? " skyblue" : " blue";
+        } else if (row === 5) {
+          // Middle row: Zigzag greens
+          tile.className += (row + col) % 2 === 0 ? " green" : " darkgreen";
+        }
       } else {
-        // Rightmost 2 lanes: zigzag with blues
-        tile.className += (row + col) % 2 === 0 ? " skyblue" : " blue";
+        // Chessboard pattern for the rest of the grid
+        tile.className += (row + col) % 2 === 0 ? " brown" : " lightbrown";
       }
 
       tile.dataset.built = "false";
