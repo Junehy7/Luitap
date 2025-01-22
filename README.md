@@ -22,8 +22,8 @@
     }
     #game {
       display: grid;
-      grid-template-columns: repeat(9, 40px); /* 9 horizontal tiles */
-      grid-template-rows: repeat(11, 40px); /* 11 vertical tiles */
+      grid-template-columns: repeat(9, 40px); /* 9 columns */
+      grid-template-rows: repeat(11, 40px); /* 11 rows */
       gap: 0;
       margin: 20px auto;
       border: 2px solid #333;
@@ -87,7 +87,7 @@
     <!-- Message Area -->
     <div id="message">Welcome to the Chess-Style Tycoon Game!</div>
 
-    <!-- HTML structure -->
+    <!-- Menu -->
     <div id="menu">
       <select id="buildingType">
         <option value="factory">Factory ($20)</option>
@@ -99,6 +99,7 @@
       <p>Turn: <span id="turn">1</span></p>
     </div>
 
+    <!-- Game Board -->
     <div id="game"></div>
   </div>
 
@@ -117,7 +118,7 @@
       messageDisplay.textContent = message;
     }
 
-    // Initialize grid with zig-zag colors and custom layout
+    // Initialize grid with updated 2-5-2 layout
     for (let i = 0; i < 99; i++) {
       const row = Math.floor(i / 9);
       const col = i % 9;
@@ -125,21 +126,16 @@
       const tile = document.createElement("div");
       tile.className = "tile";
 
-      // Middle 3 horizontal lanes (2-5-2 layout)
-      if (row >= 3 && row <= 8) {
-        if (row < 5) {
-          // Top 2 lanes: zigzag with blues
-          tile.className += (row + col) % 2 === 0 ? " skyblue" : " blue";
-        } else if (row < 8) {
-          // Middle 5 lanes: zigzag with greens
-          tile.className += (row + col) % 2 === 0 ? " green" : " darkgreen";
-        } else {
-          // Bottom 2 lanes: zigzag with blues
-          tile.className += (row + col) % 2 === 0 ? " skyblue" : " blue";
-        }
+      // Leftmost, middle, and rightmost lanes
+      if (col < 2) {
+        // Leftmost 2 lanes: zigzag with blues
+        tile.className += (row + col) % 2 === 0 ? " skyblue" : " blue";
+      } else if (col >= 2 && col < 7) {
+        // Middle 5 lanes: zigzag with greens
+        tile.className += (row + col) % 2 === 0 ? " green" : " darkgreen";
       } else {
-        // Chessboard style for non-middle lanes
-        tile.className += (row + col) % 2 === 0 ? " brown" : " lightbrown";
+        // Rightmost 2 lanes: zigzag with blues
+        tile.className += (row + col) % 2 === 0 ? " skyblue" : " blue";
       }
 
       tile.dataset.built = "false";
