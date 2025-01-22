@@ -34,6 +34,9 @@
       cursor: pointer;
       position: relative;
     }
+    .tile.brown {
+      background-color: #a0522d; /* Brown for non-middle lanes */
+    }
     .tile.skyblue {
       background-color: #87ceeb;
     }
@@ -96,7 +99,6 @@
   </div>
 
   <script>
-    // JavaScript logic
     const grid = document.getElementById("game");
     const moneyDisplay = document.getElementById("money");
     const turnDisplay = document.getElementById("turn");
@@ -107,24 +109,27 @@
     const tiles = [];
     const turnEarnings = 10;
 
-    // Function to show messages
     function showMessage(message) {
       messageDisplay.textContent = message;
     }
 
-    // Initialize custom grid (9x11) with special coloring
-    for (let i = 0; i < 99; i++) { // 9 * 11 = 99 tiles
+    // Initialize grid with zig-zag colors
+    for (let i = 0; i < 99; i++) {
       const row = Math.floor(i / 9);
       const col = i % 9;
 
       const tile = document.createElement("div");
       tile.className = "tile";
 
-      // Apply colors to middle 3 lanes
-      if (col >= 3 && col <= 5) {
-        tile.className += row < 3 || row > 7 ? " skyblue" : " green"; // Skyblue for water, green for land
+      // Middle 3 horizontal lanes
+      if (row >= 4 && row <= 6) {
+        if ((row + col) % 2 === 0) {
+          tile.className += row === 4 ? " skyblue" : row === 6 ? " blue" : " green"; // Zigzag with blues and greens
+        } else {
+          tile.className += row === 4 ? " blue" : row === 6 ? " darkgreen" : " darkgreen"; // Alternate colors
+        }
       } else {
-        tile.className += row < 3 || row > 7 ? " blue" : " darkgreen"; // Blue for water, dark green for land
+        tile.className += " brown"; // Non-middle rows
       }
 
       tile.dataset.built = "false";
@@ -165,9 +170,9 @@
         img.src = buildingType === "factory" ? "factory.png" : "house.png";
         selectedTile.appendChild(img);
 
-        // Apply a random pollution fine for factories
+        // Random pollution fine
         if (buildingType === "factory") {
-          const pollutionFine = Math.floor(Math.random() * 10) + 5; // Random fine between $5 and $15
+          const pollutionFine = Math.floor(Math.random() * 10) + 5;
           money -= pollutionFine;
           showMessage(`Factory built! Random pollution fine applied (-$${pollutionFine}).`);
         } else {
@@ -181,19 +186,16 @@
     }
 
     function endTurn() {
-      // Add earnings for all built tiles
       tiles.forEach(tile => {
         if (tile.dataset.built === "true") {
           const level = parseInt(tile.dataset.level);
-          money += level * turnEarnings; // Earnings depend on tile level
+          money += level * turnEarnings;
         }
       });
 
       turn++;
       updateMoney();
       turnDisplay.textContent = turn;
-
-      // Randomly upgrade buildings
       tiles.forEach(tile => {
         if (tile.dataset.built === "true" && Math.random() > 0.7) {
           const level = parseInt(tile.dataset.level);
@@ -207,7 +209,6 @@
       moneyDisplay.textContent = money;
     }
 
-    // Load game on page load
     window.onload = () => {
       showMessage("Welcome to the Customized Turn-Based Tycoon Game!");
     };
