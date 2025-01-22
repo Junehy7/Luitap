@@ -56,9 +56,9 @@
       <option value="house">House ($15)</option>
     </select>
     <button onclick="build()">Build</button>
-    <button onclick="saveGame()">Save Game</button>
-    <button onclick="loadGame()">Load Game</button>
+    <button onclick="endTurn()">End Turn</button>
     <p>Money: <span id="money">50</span></p>
+    <p>Turn: <span id="turn">1</span></p>
   </div>
   <div id="game"></div>
 
@@ -66,11 +66,13 @@
     // JavaScript logic
     const grid = document.getElementById("game");
     const moneyDisplay = document.getElementById("money");
+    const turnDisplay = document.getElementById("turn");
     const messageDisplay = document.getElementById("message");
 
     let money = 50;
+    let turn = 1;
     const tiles = [];
-    const earnings = 5;
+    const turnEarnings = 10;
 
     // Function to show messages
     function showMessage(message) {
@@ -119,84 +121,51 @@
         img.src = buildingType === "factory" ? "factory.png" : "house.png";
         selectedTile.appendChild(img);
 
-        showMessage("Building constructed successfully!");
+        // Apply a fine for building a factory
+        if (buildingType === "factory") {
+          money -= 5; // Fine for pollution
+          showMessage("Factory built! Fine applied for pollution (-$5).");
+        } else {
+          showMessage("House built successfully!");
+        }
+
         updateMoney();
       } else {
         showMessage("Not enough money!");
       }
     }
 
-    function saveGame() {
-      const gameState = {
-        money,
-        tiles: tiles.map(tile => ({
-          built: tile.dataset.built,
-          level: tile.dataset.level,
-          type: tile.dataset.type,
-        })),
-      };
-      localStorage.setItem("tycoonGame", JSON.stringify(gameState));
-      showMessage("Game saved successfully!");
-    }
-
-    function loadGame() {
-      const savedState = localStorage.getItem("tycoonGame");
-      if (!savedState) {
-        showMessage("No saved game found!");
-        return;
-      }
-      const { money: savedMoney, tiles: savedTiles } = JSON.parse(savedState);
-      money = savedMoney;
-      updateMoney();
-      savedTiles.forEach((tileData, index) => {
-        const tile = tiles[index];
-        tile.dataset.built = tileData.built;
-        tile.dataset.level = tileData.level;
-        tile.dataset.type = tileData.type;
-        tile.innerHTML = "";
-        if (tileData.built === "true") {
-          const img = document.createElement("img");
-          img.src = tileData.type === "factory" ? "factory.png" : "house.png";
-          tile.appendChild(img);
+    function endTurn() {
+      // Add earnings for all built tiles
+      tiles.forEach(tile => {
+        if (tile.dataset.built === "true") {
+          const level = parseInt(tile.dataset.level);
+          money += level * turnEarnings; // Earnings depend on tile level
         }
       });
-      showMessage("Game loaded successfully!");
+
+      turn++;
+      updateMoney();
+      turnDisplay.textContent = turn;
+
+      // Randomly upgrade buildings
+      tiles.forEach(tile => {
+        if (tile.dataset.built === "true" && Math.random() > 0.7) {
+          const level = parseInt(tile.dataset.level);
+          tile.dataset.level = level + 1;
+          showMessage(`A building was upgraded to level ${level + 1}!`);
+        }
+      });
     }
 
     function updateMoney() {
       moneyDisplay.textContent = money;
     }
 
-    // Earnings loop
-    setInterval(() => {
-      tiles.forEach(tile => {
-        if (tile.dataset.built === "true") {
-          money += earnings * parseInt(tile.dataset.level);
-        }
-      });
-      updateMoney();
-    }, 3000);
-
-    // Random events
-    function triggerRandomEvent() {
-      const eventType = Math.random() > 0.5 ? "good" : "bad";
-      if (eventType === "good") {
-        const bonus = Math.floor(Math.random() * 20) + 10;
-        money += bonus;
-        showMessage(`Good Event! You received a bonus of $${bonus}.`);
-      } else {
-        const fine = Math.floor(Math.random() * 15) + 5;
-        money -= fine;
-        if (money < 0) money = 0;
-        showMessage(`Bad Event! You were fined $${fine}.`);
-      }
-      updateMoney();
-    }
-
-    setInterval(triggerRandomEvent, 20000);
-
     // Load game on page load
-    window.onload = loadGame;
+    window.onload = () => {
+      showMessage("Welcome to the turn-based Tycoon Game! Build wisely!");
+    };
   </script>
 </body>
 </html>
