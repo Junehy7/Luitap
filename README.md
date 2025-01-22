@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chess-Style Tycoon Game</title>
+  <title>Custom Tycoon Game</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,7 +12,7 @@
       background-color: #ececec;
     }
     #container {
-      max-width: 400px; /* Matches the board width */
+      max-width: 400px;
       margin: 0 auto;
       padding: 20px;
       background-color: #fff;
@@ -21,8 +21,8 @@
     }
     #game {
       display: grid;
-      grid-template-columns: repeat(8, 40px); /* Adjust tile size */
-      grid-template-rows: repeat(8, 40px);
+      grid-template-columns: repeat(9, 40px); /* 9 horizontal tiles */
+      grid-template-rows: repeat(11, 40px); /* 11 vertical tiles */
       gap: 0;
       margin: 20px auto;
       border: 2px solid #333;
@@ -34,11 +34,17 @@
       cursor: pointer;
       position: relative;
     }
-    .tile.light {
-      background-color: #f0d9b5;
+    .tile.skyblue {
+      background-color: #87ceeb;
     }
-    .tile.dark {
-      background-color: #b58863;
+    .tile.blue {
+      background-color: #4682b4;
+    }
+    .tile.green {
+      background-color: #98fb98;
+    }
+    .tile.darkgreen {
+      background-color: #006400;
     }
     .tile img {
       width: 100%;
@@ -72,7 +78,7 @@
 <body>
   <div id="container">
     <!-- Message Area -->
-    <div id="message">Welcome to Chess-Style Tycoon Game!</div>
+    <div id="message">Welcome to the Customized Tycoon Game!</div>
 
     <!-- HTML structure -->
     <div id="menu">
@@ -106,10 +112,21 @@
       messageDisplay.textContent = message;
     }
 
-    // Initialize chessboard grid
-    for (let i = 0; i < 64; i++) {
+    // Initialize custom grid (9x11) with special coloring
+    for (let i = 0; i < 99; i++) { // 9 * 11 = 99 tiles
+      const row = Math.floor(i / 9);
+      const col = i % 9;
+
       const tile = document.createElement("div");
-      tile.className = "tile " + ((Math.floor(i / 8) + i) % 2 === 0 ? "light" : "dark");
+      tile.className = "tile";
+
+      // Apply colors to middle 3 lanes
+      if (col >= 3 && col <= 5) {
+        tile.className += row < 3 || row > 7 ? " skyblue" : " green"; // Skyblue for water, green for land
+      } else {
+        tile.className += row < 3 || row > 7 ? " blue" : " darkgreen"; // Blue for water, dark green for land
+      }
+
       tile.dataset.built = "false";
       tile.dataset.level = "0";
       tile.onclick = () => selectTile(i);
@@ -148,10 +165,11 @@
         img.src = buildingType === "factory" ? "factory.png" : "house.png";
         selectedTile.appendChild(img);
 
-        // Apply a fine for building a factory
+        // Apply a random pollution fine for factories
         if (buildingType === "factory") {
-          money -= 5; // Fine for pollution
-          showMessage("Factory built! Fine applied for pollution (-$5).");
+          const pollutionFine = Math.floor(Math.random() * 10) + 5; // Random fine between $5 and $15
+          money -= pollutionFine;
+          showMessage(`Factory built! Random pollution fine applied (-$${pollutionFine}).`);
         } else {
           showMessage("House built successfully!");
         }
@@ -191,7 +209,7 @@
 
     // Load game on page load
     window.onload = () => {
-      showMessage("Welcome to the Chess-Style Turn-Based Tycoon Game!");
+      showMessage("Welcome to the Customized Turn-Based Tycoon Game!");
     };
   </script>
 </body>
