@@ -12,7 +12,7 @@
       background-color: #ececec;
     }
     #container {
-      max-width: 500px;
+      max-width: 400px; /* Matches the board width */
       margin: 0 auto;
       padding: 20px;
       background-color: #fff;
@@ -21,8 +21,8 @@
     }
     #game {
       display: grid;
-      grid-template-columns: repeat(8, 60px);
-      grid-template-rows: repeat(8, 60px);
+      grid-template-columns: repeat(8, 40px); /* Adjust tile size */
+      grid-template-rows: repeat(8, 40px);
       gap: 0;
       margin: 20px auto;
       border: 2px solid #333;
