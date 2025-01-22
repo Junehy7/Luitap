@@ -1,8 +1,9 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Custom Tycoon Game</title>
+  <title>Chess-Style Tycoon Game</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -35,19 +36,22 @@
       position: relative;
     }
     .tile.brown {
-      background-color: #a0522d; /* Brown for non-middle lanes */
+      background-color: #a0522d; /* Dark brown */
+    }
+    .tile.lightbrown {
+      background-color: #d2b48c; /* Light brown */
     }
     .tile.skyblue {
-      background-color: #87ceeb;
+      background-color: #87ceeb; /* Skyblue */
     }
     .tile.blue {
-      background-color: #4682b4;
+      background-color: #4682b4; /* Blue */
     }
     .tile.green {
-      background-color: #98fb98;
+      background-color: #98fb98; /* Light green */
     }
     .tile.darkgreen {
-      background-color: #006400;
+      background-color: #006400; /* Dark green */
     }
     .tile img {
       width: 100%;
@@ -81,7 +85,7 @@
 <body>
   <div id="container">
     <!-- Message Area -->
-    <div id="message">Welcome to the Customized Tycoon Game!</div>
+    <div id="message">Welcome to the Chess-Style Tycoon Game!</div>
 
     <!-- HTML structure -->
     <div id="menu">
@@ -113,7 +117,7 @@
       messageDisplay.textContent = message;
     }
 
-    // Initialize grid with zig-zag colors
+    // Initialize grid with zig-zag colors and custom layout
     for (let i = 0; i < 99; i++) {
       const row = Math.floor(i / 9);
       const col = i % 9;
@@ -121,15 +125,21 @@
       const tile = document.createElement("div");
       tile.className = "tile";
 
-      // Middle 3 horizontal lanes
-      if (row >= 4 && row <= 6) {
-        if ((row + col) % 2 === 0) {
-          tile.className += row === 4 ? " skyblue" : row === 6 ? " blue" : " green"; // Zigzag with blues and greens
+      // Middle 3 horizontal lanes (2-5-2 layout)
+      if (row >= 3 && row <= 8) {
+        if (row < 5) {
+          // Top 2 lanes: zigzag with blues
+          tile.className += (row + col) % 2 === 0 ? " skyblue" : " blue";
+        } else if (row < 8) {
+          // Middle 5 lanes: zigzag with greens
+          tile.className += (row + col) % 2 === 0 ? " green" : " darkgreen";
         } else {
-          tile.className += row === 4 ? " blue" : row === 6 ? " darkgreen" : " darkgreen"; // Alternate colors
+          // Bottom 2 lanes: zigzag with blues
+          tile.className += (row + col) % 2 === 0 ? " skyblue" : " blue";
         }
       } else {
-        tile.className += " brown"; // Non-middle rows
+        // Chessboard style for non-middle lanes
+        tile.className += (row + col) % 2 === 0 ? " brown" : " lightbrown";
       }
 
       tile.dataset.built = "false";
@@ -170,15 +180,7 @@
         img.src = buildingType === "factory" ? "factory.png" : "house.png";
         selectedTile.appendChild(img);
 
-        // Random pollution fine
-        if (buildingType === "factory") {
-          const pollutionFine = Math.floor(Math.random() * 10) + 5;
-          money -= pollutionFine;
-          showMessage(`Factory built! Random pollution fine applied (-$${pollutionFine}).`);
-        } else {
-          showMessage("House built successfully!");
-        }
-
+        showMessage(`${buildingType.charAt(0).toUpperCase() + buildingType.slice(1)} built successfully!`);
         updateMoney();
       } else {
         showMessage("Not enough money!");
@@ -196,13 +198,6 @@
       turn++;
       updateMoney();
       turnDisplay.textContent = turn;
-      tiles.forEach(tile => {
-        if (tile.dataset.built === "true" && Math.random() > 0.7) {
-          const level = parseInt(tile.dataset.level);
-          tile.dataset.level = level + 1;
-          showMessage(`A building was upgraded to level ${level + 1}!`);
-        }
-      });
     }
 
     function updateMoney() {
@@ -210,7 +205,7 @@
     }
 
     window.onload = () => {
-      showMessage("Welcome to the Customized Turn-Based Tycoon Game!");
+      showMessage("Welcome to the Chess-Style Tycoon Game!");
     };
   </script>
 </body>
