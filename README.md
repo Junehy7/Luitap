@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tycoon Game</title>
+  <title>Chess-Style Tycoon Game</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,20 +12,25 @@
     }
     #game {
       display: grid;
-      grid-template-columns: repeat(10, 50px);
-      grid-template-rows: repeat(10, 50px);
-      gap: 2px;
+      grid-template-columns: repeat(8, 60px);
+      grid-template-rows: repeat(8, 60px);
+      gap: 0;
       margin: 20px auto;
-      width: 520px;
+      width: 480px;
+      border: 2px solid #333;
     }
     .tile {
-      border: 1px solid #ccc;
-      background-color: #f9f9f9;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       position: relative;
+    }
+    .tile.light {
+      background-color: #f0d9b5;
+    }
+    .tile.dark {
+      background-color: #b58863;
     }
     .tile img {
       width: 100%;
@@ -46,7 +51,7 @@
 </head>
 <body>
   <!-- Message Area -->
-  <div id="message">Welcome to Tycoon Game!</div>
+  <div id="message">Welcome to Chess-Style Tycoon Game!</div>
 
   <!-- HTML structure -->
   <div id="menu">
@@ -78,10 +83,10 @@
       messageDisplay.textContent = message;
     }
 
-    // Initialize grid
-    for (let i = 0; i < 100; i++) {
+    // Initialize chessboard grid
+    for (let i = 0; i < 64; i++) {
       const tile = document.createElement("div");
-      tile.className = "tile";
+      tile.className = "tile " + ((Math.floor(i / 8) + i) % 2 === 0 ? "light" : "dark");
       tile.dataset.built = "false";
       tile.dataset.level = "0";
       tile.onclick = () => selectTile(i);
@@ -163,7 +168,7 @@
 
     // Load game on page load
     window.onload = () => {
-      showMessage("Welcome to the turn-based Tycoon Game! Build wisely!");
+      showMessage("Welcome to the Chess-Style Turn-Based Tycoon Game!");
     };
   </script>
 </body>
