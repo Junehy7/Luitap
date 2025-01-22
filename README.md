@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -9,6 +10,15 @@
       margin: 0;
       padding: 0;
       text-align: center;
+      background-color: #ececec;
+    }
+    #container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
     #game {
       display: grid;
@@ -16,7 +26,6 @@
       grid-template-rows: repeat(8, 60px);
       gap: 0;
       margin: 20px auto;
-      width: 480px;
       border: 2px solid #333;
     }
     .tile {
@@ -37,34 +46,49 @@
       height: 100%;
     }
     #menu {
-      margin: 20px auto;
+      text-align: center;
+      margin: 10px auto;
+    }
+    #menu select, #menu button {
+      margin: 5px;
+      padding: 5px 10px;
+      font-size: 1rem;
+    }
+    #menu p {
+      margin: 5px;
+      font-size: 1.2rem;
+      font-weight: bold;
     }
     #message {
-      margin: 20px;
+      margin: 10px auto;
       padding: 10px;
       border: 1px solid #ccc;
       background-color: #f3f3f3;
       font-size: 1rem;
       color: #333;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
-  <!-- Message Area -->
-  <div id="message">Welcome to Chess-Style Tycoon Game!</div>
+  <div id="container">
+    <!-- Message Area -->
+    <div id="message">Welcome to Chess-Style Tycoon Game!</div>
 
-  <!-- HTML structure -->
-  <div id="menu">
-    <select id="buildingType">
-      <option value="factory">Factory ($20)</option>
-      <option value="house">House ($15)</option>
-    </select>
-    <button onclick="build()">Build</button>
-    <button onclick="endTurn()">End Turn</button>
-    <p>Money: <span id="money">50</span></p>
-    <p>Turn: <span id="turn">1</span></p>
+    <!-- HTML structure -->
+    <div id="menu">
+      <select id="buildingType">
+        <option value="factory">Factory ($20)</option>
+        <option value="house">House ($15)</option>
+      </select>
+      <button onclick="build()">Build</button>
+      <button onclick="endTurn()">End Turn</button>
+      <p>Money: <span id="money">50</span></p>
+      <p>Turn: <span id="turn">1</span></p>
+    </div>
+
+    <div id="game"></div>
   </div>
-  <div id="game"></div>
 
   <script>
     // JavaScript logic
