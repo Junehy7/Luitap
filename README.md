@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fixed Chess-Style Board</title>
+  <title>Chess-Style Board</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -81,42 +81,56 @@
   <script>
     const grid = document.getElementById("game");
 
+    // Function to assign tile colors
+    function getTileColor(row, col) {
+      // Top-left corner
+      if (row < 3 && col < 3) {
+        if ((row === 0 && col === 0) || (row === 0 && col === 2) || (row === 2 && col === 0)) return "blue";
+        if ((row === 0 && col === 1) || (row === 1 && col === 0)) return "skyblue";
+        if ((row === 1 && col === 1) || (row === 2 && col === 2)) return "darkgreen";
+        if ((row === 1 && col === 2) || (row === 2 && col === 1)) return "green";
+      }
+
+      // Top-right corner
+      if (row < 3 && col > 7) {
+        if ((row === 0 && col === 8) || (row === 0 && col === 10) || (row === 2 && col === 8)) return "blue";
+        if ((row === 0 && col === 9) || (row === 1 && col === 8)) return "skyblue";
+        if ((row === 1 && col === 9) || (row === 2 && col === 10)) return "darkgreen";
+        if ((row === 1 && col === 10) || (row === 2 && col === 9)) return "green";
+      }
+
+      // Bottom-left corner
+      if (row > 7 && col < 3) {
+        if ((row === 8 && col === 0) || (row === 8 && col === 2) || (row === 10 && col === 0)) return "blue";
+        if ((row === 8 && col === 1) || (row === 9 && col === 0)) return "skyblue";
+        if ((row === 9 && col === 1) || (row === 10 && col === 2)) return "darkgreen";
+        if ((row === 9 && col === 2) || (row === 10 && col === 1)) return "green";
+      }
+
+      // Bottom-right corner
+      if (row > 7 && col > 7) {
+        if ((row === 8 && col === 8) || (row === 8 && col === 10) || (row === 10 && col === 8)) return "blue";
+        if ((row === 8 && col === 9) || (row === 9 && col === 8)) return "skyblue";
+        if ((row === 9 && col === 9) || (row === 10 && col === 10)) return "darkgreen";
+        if ((row === 9 && col === 10) || (row === 10 && col === 9)) return "green";
+      }
+
+      // Center 3x3 grid
+      if (row >= 4 && row <= 6 && col >= 4 && col <= 6) {
+        return (row + col) % 2 === 0 ? "lightgrey" : "darkgrey";
+      }
+
+      // Remaining board (classic chessboard style)
+      return (row + col) % 2 === 0 ? "brown" : "lightbrown";
+    }
+
     // Initialize grid with the specified layout
     for (let i = 0; i < 121; i++) {
-      const row = Math.floor(i / 11); // Current row
-      const col = i % 11; // Current column
+      const row = Math.floor(i / 11);
+      const col = i % 11;
 
       const tile = document.createElement("div");
-      tile.className = "tile";
-
-      // Four corners (top-left, top-right, bottom-left, bottom-right)
-      if ((row < 3 && col < 3) || (row < 3 && col > 7) || (row > 7 && col < 3) || (row > 7 && col > 7)) {
-        // Top-left corner pattern
-        if (row < 3 && col < 3) {
-          if ((row === 0 && col === 0) || (row === 0 && col === 2) || (row === 2 && col === 0)) tile.className += " blue";
-          else if ((row === 0 && col === 1) || (row === 1 && col === 0)) tile.className += " skyblue";
-          else if ((row === 1 && col === 1) || (row === 2 && col === 2)) tile.className += " darkgreen";
-          else if ((row === 1 && col === 2) || (row === 2 && col === 1)) tile.className += " green";
-        }
-        // Symmetrical corners
-        else if ((row < 3 && col > 7) || (row > 7 && col < 3) || (row > 7 && col > 7)) {
-          const symmetryOffset = (col > 7 ? -8 : 0) + (row > 7 ? -88 : 0);
-          const symIndex = i + symmetryOffset;
-          if ((symIndex === 0) || (symIndex === 2) || (symIndex === 6)) tile.className += " blue";
-          else if (symIndex === 1 || symIndex === 3) tile.className += " skyblue";
-          else if (symIndex === 4 || symIndex === 8) tile.className += " darkgreen";
-          else if (symIndex === 5 || symIndex === 7) tile.className += " green";
-        }
-      }
-      // Center 9 blocks (3x3 grid)
-      else if (row >= 4 && row <= 6 && col >= 4 && col <= 6) {
-        tile.className += (row + col) % 2 === 0 ? " lightgrey" : " darkgrey";
-      }
-      // Rest of the board: classic chessboard style
-      else {
-        tile.className += (row + col) % 2 === 0 ? " brown" : " lightbrown";
-      }
-
+      tile.className = `tile ${getTileColor(row, col)}`;
       grid.appendChild(tile);
     }
   </script>
