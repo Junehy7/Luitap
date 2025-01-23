@@ -53,10 +53,10 @@
       background-color: #006400; /* Dark green */
     }
     .tile.lightgrey {
-      background-color: #d3d3d3; /* Light grey */
+      background-color: #808080; /* Dark grey (switched position) */
     }
     .tile.darkgrey {
-      background-color: #808080; /* Dark grey */
+      background-color: #d3d3d3; /* Light grey (switched position) */
     }
     #message {
       margin: 10px auto;
@@ -107,9 +107,9 @@
         return ["blue", "skyblue", "blue", "skyblue", "darkgreen", "green", "blue", "green", "darkgreen"][index];
       }
 
-      // Center 3x3 grid
+      // Center 3x3 grid (switched light grey and dark grey)
       if (row >= 4 && row <= 6 && col >= 4 && col <= 6) {
-        return (row + col) % 2 === 0 ? "lightgrey" : "darkgrey";
+        return (row + col) % 2 === 0 ? "darkgrey" : "lightgrey";
       }
 
       // Remaining board (classic chessboard style)
