@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chess-Style Board</title>
+  <title>Symmetrical Chess Board</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -72,7 +72,7 @@
 <body>
   <div id="container">
     <!-- Message Area -->
-    <div id="message">Welcome to the Custom Chess-Style Board!</div>
+    <div id="message">Welcome to the Symmetrical Chess-Style Board!</div>
 
     <!-- Game Board -->
     <div id="game"></div>
@@ -85,34 +85,26 @@
     function getTileColor(row, col) {
       // Top-left corner
       if (row < 3 && col < 3) {
-        if ((row === 0 && col === 0) || (row === 0 && col === 2) || (row === 2 && col === 0)) return "blue";
-        if ((row === 0 && col === 1) || (row === 1 && col === 0)) return "skyblue";
-        if ((row === 1 && col === 1) || (row === 2 && col === 2)) return "darkgreen";
-        if ((row === 1 && col === 2) || (row === 2 && col === 1)) return "green";
+        const index = row * 3 + col;
+        return ["blue", "skyblue", "blue", "skyblue", "darkgreen", "green", "blue", "green", "darkgreen"][index];
       }
 
-      // Top-right corner
+      // Top-right corner (mirror horizontally)
       if (row < 3 && col > 7) {
-        if ((row === 0 && col === 8) || (row === 0 && col === 10) || (row === 2 && col === 8)) return "blue";
-        if ((row === 0 && col === 9) || (row === 1 && col === 8)) return "skyblue";
-        if ((row === 1 && col === 9) || (row === 2 && col === 10)) return "darkgreen";
-        if ((row === 1 && col === 10) || (row === 2 && col === 9)) return "green";
+        const index = row * 3 + (10 - col);
+        return ["blue", "skyblue", "blue", "skyblue", "darkgreen", "green", "blue", "green", "darkgreen"][index];
       }
 
-      // Bottom-left corner
+      // Bottom-left corner (mirror vertically)
       if (row > 7 && col < 3) {
-        if ((row === 8 && col === 0) || (row === 8 && col === 2) || (row === 10 && col === 0)) return "blue";
-        if ((row === 8 && col === 1) || (row === 9 && col === 0)) return "skyblue";
-        if ((row === 9 && col === 1) || (row === 10 && col === 2)) return "darkgreen";
-        if ((row === 9 && col === 2) || (row === 10 && col === 1)) return "green";
+        const index = (10 - row) * 3 + col;
+        return ["blue", "skyblue", "blue", "skyblue", "darkgreen", "green", "blue", "green", "darkgreen"][index];
       }
 
-      // Bottom-right corner
+      // Bottom-right corner (mirror diagonally)
       if (row > 7 && col > 7) {
-        if ((row === 8 && col === 8) || (row === 8 && col === 10) || (row === 10 && col === 8)) return "blue";
-        if ((row === 8 && col === 9) || (row === 9 && col === 8)) return "skyblue";
-        if ((row === 9 && col === 9) || (row === 10 && col === 10)) return "darkgreen";
-        if ((row === 9 && col === 10) || (row === 10 && col === 9)) return "green";
+        const index = (10 - row) * 3 + (10 - col);
+        return ["blue", "skyblue", "blue", "skyblue", "darkgreen", "green", "blue", "green", "darkgreen"][index];
       }
 
       // Center 3x3 grid
