@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Custom Chess-Style Board</title>
+  <title>Fixed Chess-Style Board</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -93,16 +93,16 @@
       if ((row < 3 && col < 3) || (row < 3 && col > 7) || (row > 7 && col < 3) || (row > 7 && col > 7)) {
         // Top-left corner pattern
         if (row < 3 && col < 3) {
-          if (i === 0 || i === 2 || i === 6) tile.className += " blue";
-          else if (i === 1 || i === 3) tile.className += " skyblue";
-          else if (i === 4 || i === 8) tile.className += " darkgreen";
-          else if (i === 5 || i === 7) tile.className += " green";
+          if ((row === 0 && col === 0) || (row === 0 && col === 2) || (row === 2 && col === 0)) tile.className += " blue";
+          else if ((row === 0 && col === 1) || (row === 1 && col === 0)) tile.className += " skyblue";
+          else if ((row === 1 && col === 1) || (row === 2 && col === 2)) tile.className += " darkgreen";
+          else if ((row === 1 && col === 2) || (row === 2 && col === 1)) tile.className += " green";
         }
-        // Top-right, bottom-left, bottom-right are symmetrical
+        // Symmetrical corners
         else if ((row < 3 && col > 7) || (row > 7 && col < 3) || (row > 7 && col > 7)) {
           const symmetryOffset = (col > 7 ? -8 : 0) + (row > 7 ? -88 : 0);
           const symIndex = i + symmetryOffset;
-          if (symIndex === 0 || symIndex === 2 || symIndex === 6) tile.className += " blue";
+          if ((symIndex === 0) || (symIndex === 2) || (symIndex === 6)) tile.className += " blue";
           else if (symIndex === 1 || symIndex === 3) tile.className += " skyblue";
           else if (symIndex === 4 || symIndex === 8) tile.className += " darkgreen";
           else if (symIndex === 5 || symIndex === 7) tile.className += " green";
