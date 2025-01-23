@@ -126,7 +126,7 @@
 
       // Center 3x3 grid (switched dark grey and light grey)
       if (row >= 4 && row <= 6 && col >= 4 && col <= 6) {
-        return (row + col) % 2 === 0 ? "lightgrey" : "darkgrey";
+        return (row + col) % 2 === 0 ? "darkgrey" : "lightgrey"; // Switched!
       }
 
       // Remaining board (classic chessboard style)
