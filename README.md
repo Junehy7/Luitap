@@ -1,9 +1,8 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chess-Style Tycoon Game</title>
+  <title>Custom Chess-Style Board</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -13,16 +12,16 @@
       background-color: #ececec;
     }
     #container {
-      max-width: 400px;
-      margin: 0 auto;
-      padding: 20px;
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 10px;
       background-color: #fff;
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
     #game {
       display: grid;
-      grid-template-columns: repeat(9, 40px); /* 9 columns */
+      grid-template-columns: repeat(11, 40px); /* 11 columns */
       grid-template-rows: repeat(11, 40px); /* 11 rows */
       gap: 0;
       margin: 20px auto;
@@ -53,23 +52,11 @@
     .tile.darkgreen {
       background-color: #006400; /* Dark green */
     }
-    .tile img {
-      width: 100%;
-      height: 100%;
+    .tile.lightgrey {
+      background-color: #d3d3d3; /* Light grey */
     }
-    #menu {
-      text-align: center;
-      margin: 10px auto;
-    }
-    #menu select, #menu button {
-      margin: 5px;
-      padding: 5px 10px;
-      font-size: 1rem;
-    }
-    #menu p {
-      margin: 5px;
-      font-size: 1.2rem;
-      font-weight: bold;
+    .tile.darkgrey {
+      background-color: #808080; /* Dark grey */
     }
     #message {
       margin: 10px auto;
@@ -85,19 +72,7 @@
 <body>
   <div id="container">
     <!-- Message Area -->
-    <div id="message">Welcome to the Chess-Style Tycoon Game!</div>
-
-    <!-- Menu -->
-    <div id="menu">
-      <select id="buildingType">
-        <option value="factory">Factory ($20)</option>
-        <option value="house">House ($15)</option>
-      </select>
-      <button onclick="build()">Build</button>
-      <button onclick="endTurn()">End Turn</button>
-      <p>Money: <span id="money">50</span></p>
-      <p>Turn: <span id="turn">1</span></p>
-    </div>
+    <div id="message">Welcome to the Custom Chess-Style Board!</div>
 
     <!-- Game Board -->
     <div id="game"></div>
@@ -105,109 +80,45 @@
 
   <script>
     const grid = document.getElementById("game");
-    const moneyDisplay = document.getElementById("money");
-    const turnDisplay = document.getElementById("turn");
-    const messageDisplay = document.getElementById("message");
-
-    let money = 50;
-    let turn = 1;
-    const tiles = [];
-    const turnEarnings = 10;
-
-    function showMessage(message) {
-      messageDisplay.textContent = message;
-    }
 
     // Initialize grid with the specified layout
-    for (let i = 0; i < 99; i++) {
-      const row = Math.floor(i / 9);
-      const col = i % 9;
+    for (let i = 0; i < 121; i++) {
+      const row = Math.floor(i / 11); // Current row
+      const col = i % 11; // Current column
 
       const tile = document.createElement("div");
       tile.className = "tile";
 
-      if (row >= 4 && row <= 6) {
-        // Middle 3 rows (5th, 6th, 7th)
-        if (col < 3) {
-          // Left 3 columns: Greens zigzagged
-          tile.className += (row + col) % 2 === 0 ? " green" : " darkgreen";
-        } else if (col < 6) {
-          // Middle 3 columns: Blues zigzagged
-          tile.className += (row + col) % 2 === 0 ? " blue" : " skyblue";
-        } else {
-          // Right 3 columns: Greens zigzagged
-          tile.className += (row + col) % 2 === 0 ? " green" : " darkgreen";
+      // Four corners (top-left, top-right, bottom-left, bottom-right)
+      if ((row < 3 && col < 3) || (row < 3 && col > 7) || (row > 7 && col < 3) || (row > 7 && col > 7)) {
+        // Top-left corner pattern
+        if (row < 3 && col < 3) {
+          if (i === 0 || i === 2 || i === 6) tile.className += " blue";
+          else if (i === 1 || i === 3) tile.className += " skyblue";
+          else if (i === 4 || i === 8) tile.className += " darkgreen";
+          else if (i === 5 || i === 7) tile.className += " green";
         }
-      } else {
-        // Classic chessboard style for the rest
+        // Top-right, bottom-left, bottom-right are symmetrical
+        else if ((row < 3 && col > 7) || (row > 7 && col < 3) || (row > 7 && col > 7)) {
+          const symmetryOffset = (col > 7 ? -8 : 0) + (row > 7 ? -88 : 0);
+          const symIndex = i + symmetryOffset;
+          if (symIndex === 0 || symIndex === 2 || symIndex === 6) tile.className += " blue";
+          else if (symIndex === 1 || symIndex === 3) tile.className += " skyblue";
+          else if (symIndex === 4 || symIndex === 8) tile.className += " darkgreen";
+          else if (symIndex === 5 || symIndex === 7) tile.className += " green";
+        }
+      }
+      // Center 9 blocks (3x3 grid)
+      else if (row >= 4 && row <= 6 && col >= 4 && col <= 6) {
+        tile.className += (row + col) % 2 === 0 ? " lightgrey" : " darkgrey";
+      }
+      // Rest of the board: classic chessboard style
+      else {
         tile.className += (row + col) % 2 === 0 ? " brown" : " lightbrown";
       }
 
-      tile.dataset.built = "false";
-      tile.dataset.level = "0";
-      tile.onclick = () => selectTile(i);
       grid.appendChild(tile);
-      tiles.push(tile);
     }
-
-    let selectedTile = null;
-
-    function selectTile(index) {
-      selectedTile = tiles[index];
-      if (selectedTile.dataset.built === "true") {
-        showMessage(`This tile is built! Level: ${selectedTile.dataset.level}`);
-      } else {
-        showMessage("This tile is empty. You can build here!");
-      }
-    }
-
-    function build() {
-      if (!selectedTile || selectedTile.dataset.built === "true") {
-        showMessage("You cannot build on this tile!");
-        return;
-      }
-
-      const buildingType = document.getElementById("buildingType").value;
-      const cost = buildingType === "factory" ? 20 : 15;
-
-      if (money >= cost) {
-        money -= cost;
-        selectedTile.dataset.built = "true";
-        selectedTile.dataset.level = "1";
-        selectedTile.dataset.type = buildingType;
-
-        selectedTile.innerHTML = "";
-        const img = document.createElement("img");
-        img.src = buildingType === "factory" ? "factory.png" : "house.png";
-        selectedTile.appendChild(img);
-
-        showMessage(`${buildingType.charAt(0).toUpperCase() + buildingType.slice(1)} built successfully!`);
-        updateMoney();
-      } else {
-        showMessage("Not enough money!");
-      }
-    }
-
-    function endTurn() {
-      tiles.forEach(tile => {
-        if (tile.dataset.built === "true") {
-          const level = parseInt(tile.dataset.level);
-          money += level * turnEarnings;
-        }
-      });
-
-      turn++;
-      updateMoney();
-      turnDisplay.textContent = turn;
-    }
-
-    function updateMoney() {
-      moneyDisplay.textContent = money;
-    }
-
-    window.onload = () => {
-      showMessage("Welcome to the Chess-Style Tycoon Game!");
-    };
   </script>
 </body>
 </html>
